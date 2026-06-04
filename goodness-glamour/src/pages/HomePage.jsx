@@ -92,53 +92,18 @@ export default function HomePage({ navigate }) {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [hoveredGallery, setHoveredGallery] = useState(null);
 
-  // Lakme Salons Database
-  const lakmeSalons = [
-    {
-      name: "Lakme Salon, Indiranagar",
-      address: "100 Feet Rd, Hal 2nd Stage, Indiranagar, Bengaluru, Karnataka 560038",
-      lat: 12.9719,
-      lon: 77.6412,
-      phone: "+91 80 4115 4444"
-    },
-    {
-      name: "Lakme Salon, Koramangala",
-      address: "80 Feet Rd, 4th Block, Koramangala, Bengaluru, Karnataka 560034",
-      lat: 12.9343,
-      lon: 77.6244,
-      phone: "+91 80 4110 5000"
-    },
-    {
-      name: "Lakme Salon, Jayanagar",
-      address: "11th Main Rd, 4th Block, Jayanagar, Bengaluru, Karnataka 560011",
-      lat: 12.9285,
-      lon: 77.5830,
-      phone: "+91 80 4121 1111"
-    },
-    {
-      name: "Lakme Salon, Whitefield",
-      address: "ITPL Main Rd, near Hope Farm Circle, Whitefield, Bengaluru, Karnataka 560066",
-      lat: 12.9830,
-      lon: 77.7518,
-      phone: "+91 80 4148 2222"
-    },
-    {
-      name: "Lakme Salon, HSR Layout",
-      address: "19th Main Rd, Sector 4, HSR Layout, Bengaluru, Karnataka 560102",
-      lat: 12.9116,
-      lon: 77.6389,
-      phone: "+91 80 4150 3333"
-    },
-    {
-      name: "Lakme Salon, Malleshwaram",
-      address: "Margosa Rd, Malleshwaram, Bengaluru, Karnataka 560003",
-      lat: 12.9967,
-      lon: 77.5714,
-      phone: "+91 80 4128 5555"
-    }
-  ];
+  // Goodness Glamour Salons Database
+  const salons = [
+  {
+    name: "Goodness Glamour",
+    address: "Whitefield, Bengaluru",
+    lat: 12.9897, // replace with exact coordinates
+    lon: 77.7611, // replace with exact coordinates
+    phone: "+91 63645 54220"
+  }
+];
 
-  const [selectedSalon, setSelectedSalon] = useState(lakmeSalons[0]);
+  const [selectedSalon, setSelectedSalon] = useState(salons[0]);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState(null);
   const [userDistance, setUserDistance] = useState(null);
@@ -171,10 +136,10 @@ export default function HomePage({ navigate }) {
         const userLat = position.coords.latitude;
         const userLon = position.coords.longitude;
 
-        let closest = lakmeSalons[0];
+        let closest = salons[0];
         let minDistance = Infinity;
 
-        lakmeSalons.forEach((salon) => {
+        salons.forEach((salon) => {
           const dist = calculateDistance(userLat, userLon, salon.lat, salon.lon);
           if (dist < minDistance) {
             minDistance = dist;
@@ -445,81 +410,73 @@ export default function HomePage({ navigate }) {
           </div>
         </div>
       </section>
-
-      {/* ── PREMIUM OFFERS SECTION ── */}
-      <section style={{ background: "linear-gradient(135deg, #F5F0EA 0%, #FFFBF7 100%)", padding: "100px 24px", position: "relative", overflow: "hidden" }}>
-        {/* Decorative elements */}
+      {/* ── AI AGENTS SECTION ── */}
+      <section style={{ background: "#FFFBF7", padding: "120px 24px", position: "relative", overflow: "hidden" }}>
         <div style={{
-          position: "absolute", top: "-50px", right: "-50px", width: "300px", height: "300px",
+          position: "absolute", top: "-100px", left: "-100px", width: "400px", height: "400px",
           background: "radial-gradient(circle, rgba(212,165,116,0.1) 0%, transparent 70%)",
           borderRadius: "50%", zIndex: 0,
         }} />
-        <div style={{
-          maxWidth: "900px", margin: "0 auto",
-          position: "relative", zIndex: 1,
-        }}>
-          <div style={{ textAlign: "center", marginBottom: "56px" }}>
-            <div style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", color: "#B8956A", marginBottom: "12px", fontWeight: "700" }}>⏰ Time-Limited Offers</div>
-            <h2 style={{ fontSize: "42px", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-1px" }}>Exclusive Deals Today</h2>
-            <p style={{ color: "#7A7A7A", marginTop: "16px", fontSize: "16px" }}>Limited-time offers designed to give you premium beauty at exceptional value.</p>
+        <div style={{ maxWidth: "1400px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+          <div style={{ textAlign: "center", marginBottom: "72px" }}>
+            <div style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", color: "#B8956A", marginBottom: "12px", fontWeight: "700" }}>🤖 AI Powered</div>
+            <h2 style={{ fontSize: "48px", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-1px" }}>Get Expert Beauty Advice</h2>
+            <p style={{ color: "#7A7A7A", marginTop: "16px", fontSize: "16px", maxWidth: "600px", margin: "16px auto 0" }}>Chat with our AI assistant or speak directly with Priya, our virtual beauty expert. Get personalized recommendations anytime.</p>
           </div>
-          <div style={{ display: "flex", gap: "12px", justifyContent: "center", marginBottom: "40px", flexWrap: "wrap" }}>
-            {offers.map((o, i) => (
-              <button key={i} onClick={() => setActiveOffer(i)} style={{
-                padding: "10px 24px", borderRadius: "999px", fontSize: "14px",
-                fontWeight: "600", cursor: "pointer", border: "none",
-                background: activeOffer === i ? "#B8956A" : "#FFFFFF",
-                color: activeOffer === i ? "white" : "#4A4A4A",
-                transition: "all 0.3s",
-                boxShadow: activeOffer === i ? "0 8px 24px rgba(184,149,106,0.25)" : "0 2px 8px rgba(0,0,0,0.08)",
-              }}
-                onMouseEnter={e => { if (activeOffer !== i) e.currentTarget.style.transform = "translateY(-2px)"; }}
-                onMouseLeave={e => { if (activeOffer !== i) e.currentTarget.style.transform = "translateY(0)"; }}>
-                {o.tag}
-              </button>
-            ))}
-          </div>
-
-          {/* Offer card with enhanced design */}
-          <div style={{
-            position: "relative", borderRadius: "28px", overflow: "hidden",
-            minHeight: "350px", display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.12)", transition: "all 0.4s",
-          }}>
-            <img
-              src={offers[activeOffer].img}
-              alt={offers[activeOffer].tag}
-              style={{
-                position: "absolute", inset: 0,
-                width: "100%", height: "100%", objectFit: "cover",
-                transition: "transform 0.6s",
-              }}
-            />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "32px" }}>
+            {/* Voice Agent Card */}
             <div style={{
-              position: "absolute", inset: 0,
-              background: "linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 100%)",
-            }} />
-            <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "64px 32px", color: "white" }}>
-              <div style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", opacity: 0.8, marginBottom: "16px", fontWeight: "700" }}>
-                {offers[activeOffer].tag}
-              </div>
-              <h3 style={{
-                fontSize: "clamp(32px, 6vw, 52px)", fontWeight: "900",
-                color: offers[activeOffer].accent, margin: "0 0 16px 0", letterSpacing: "-1px",
-              }}>
-                {offers[activeOffer].title}
-              </h3>
-              <p style={{ opacity: 0.85, marginBottom: "36px", fontSize: "17px", maxWidth: "500px", margin: "0 auto 36px" }}>{offers[activeOffer].subtitle}</p>
-              <button onClick={() => navigate("booking")} style={{
-                background: offers[activeOffer].accent, color: "#1C1C1C",
-                border: "none", padding: "16px 40px", borderRadius: "12px",
-                fontWeight: "800", cursor: "pointer", fontSize: "16px",
-                transition: "all 0.3s",
-                boxShadow: `0 8px 24px ${offers[activeOffer].accent}40`,
-              }}
-                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `0 12px 32px ${offers[activeOffer].accent}60`; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `0 8px 24px ${offers[activeOffer].accent}40`; }}>
-                {offers[activeOffer].cta} →
+              background: "white", borderRadius: "24px", padding: "40px 32px", boxShadow: "0 8px 24px rgba(212,165,116,0.18)",
+              border: "1px solid #E8E0D8", transition: "all 0.3s", textAlign: "center",
+              animation: "slideInUp 0.6s ease-out",
+            }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 20px 50px rgba(212,165,116,0.35)"; e.currentTarget.style.transform = "translateY(-6px)"; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 8px 24px rgba(212,165,116,0.18)"; e.currentTarget.style.transform = "translateY(0)"; }}>
+              <div style={{ fontSize: "60px", marginBottom: "16px" }}>🎙️</div>
+              <h3 style={{ fontSize: "24px", fontWeight: "900", color: "#1C1C1C", margin: "0 0 12px 0" }}>Voice Call</h3>
+              <p style={{ color: "#7A7A7A", fontSize: "15px", lineHeight: "1.6", marginBottom: "28px" }}>Speak with Priya, our AI beauty consultant. Get instant advice on haircuts, treatments, and styling tips.</p>
+              <button
+                onClick={() => {
+                  const event = new CustomEvent("open-voice-agent");
+                  window.dispatchEvent(event);
+                }}
+                style={{
+                  width: "100%", background: "linear-gradient(135deg, #D4A574, #B8956A)",
+                  color: "white", border: "none", padding: "14px 28px", borderRadius: "12px",
+                  fontWeight: "700", fontSize: "15px", cursor: "pointer",
+                  transition: "all 0.3s", boxShadow: "0 8px 20px rgba(184,149,106,0.25)",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 28px rgba(184,149,106,0.35)"; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 8px 20px rgba(184,149,106,0.25)"; }}>
+                Start Voice Call →
+              </button>
+            </div>
+
+            {/* Chat Agent Card */}
+            <div style={{
+              background: "white", borderRadius: "24px", padding: "40px 32px", boxShadow: "0 8px 24px rgba(212,165,116,0.18)",
+              border: "1px solid #E8E0D8", transition: "all 0.3s", textAlign: "center",
+              animation: "slideInUp 0.7s ease-out",
+            }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 20px 50px rgba(212,165,116,0.35)"; e.currentTarget.style.transform = "translateY(-6px)"; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 8px 24px rgba(212,165,116,0.18)"; e.currentTarget.style.transform = "translateY(0)"; }}>
+              <div style={{ fontSize: "60px", marginBottom: "16px" }}>💬</div>
+              <h3 style={{ fontSize: "24px", fontWeight: "900", color: "#1C1C1C", margin: "0 0 12px 0" }}>Chat with AI</h3>
+              <p style={{ color: "#7A7A7A", fontSize: "15px", lineHeight: "1.6", marginBottom: "28px" }}>Text our AI assistant for beauty tips, product recommendations, and salon information. Available 24/7.</p>
+              <button
+                onClick={() => {
+                  const event = new CustomEvent("open-ai-chat");
+                  window.dispatchEvent(event);
+                }}
+                style={{
+                  width: "100%", background: "transparent", color: "#D4A574",
+                  border: "2px solid #D4A574", padding: "12px 28px", borderRadius: "12px",
+                  fontWeight: "700", fontSize: "15px", cursor: "pointer",
+                  transition: "all 0.3s",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = "#D4A574"; e.currentTarget.style.color = "white"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#D4A574"; }}>
+                Open Chat →
               </button>
             </div>
           </div>
@@ -599,6 +556,86 @@ export default function HomePage({ navigate }) {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PREMIUM OFFERS SECTION ── */}
+      <section style={{ background: "linear-gradient(135deg, #F5F0EA 0%, #FFFBF7 100%)", padding: "100px 24px", position: "relative", overflow: "hidden" }}>
+        {/* Decorative elements */}
+        <div style={{
+          position: "absolute", top: "-50px", right: "-50px", width: "300px", height: "300px",
+          background: "radial-gradient(circle, rgba(212,165,116,0.1) 0%, transparent 70%)",
+          borderRadius: "50%", zIndex: 0,
+        }} />
+        <div style={{
+          maxWidth: "900px", margin: "0 auto",
+          position: "relative", zIndex: 1,
+        }}>
+          <div style={{ textAlign: "center", marginBottom: "56px" }}>
+            <div style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", color: "#B8956A", marginBottom: "12px", fontWeight: "700" }}>⏰ Time-Limited Offers</div>
+            <h2 style={{ fontSize: "42px", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-1px" }}>Exclusive Deals Today</h2>
+            <p style={{ color: "#7A7A7A", marginTop: "16px", fontSize: "16px" }}>Limited-time offers designed to give you premium beauty at exceptional value.</p>
+          </div>
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center", marginBottom: "40px", flexWrap: "wrap" }}>
+            {offers.map((o, i) => (
+              <button key={i} onClick={() => setActiveOffer(i)} style={{
+                padding: "10px 24px", borderRadius: "999px", fontSize: "14px",
+                fontWeight: "600", cursor: "pointer", border: "none",
+                background: activeOffer === i ? "#B8956A" : "#FFFFFF",
+                color: activeOffer === i ? "white" : "#4A4A4A",
+                transition: "all 0.3s",
+                boxShadow: activeOffer === i ? "0 8px 24px rgba(184,149,106,0.25)" : "0 2px 8px rgba(0,0,0,0.08)",
+              }}
+                onMouseEnter={e => { if (activeOffer !== i) e.currentTarget.style.transform = "translateY(-2px)"; }}
+                onMouseLeave={e => { if (activeOffer !== i) e.currentTarget.style.transform = "translateY(0)"; }}>
+                {o.tag}
+              </button>
+            ))}
+          </div>
+
+          {/* Offer card with enhanced design */}
+          <div style={{
+            position: "relative", borderRadius: "28px", overflow: "hidden",
+            minHeight: "350px", display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.12)", transition: "all 0.4s",
+          }}>
+            <img
+              src={offers[activeOffer].img}
+              alt={offers[activeOffer].tag}
+              style={{
+                position: "absolute", inset: 0,
+                width: "100%", height: "100%", objectFit: "cover",
+                transition: "transform 0.6s",
+              }}
+            />
+            <div style={{
+              position: "absolute", inset: 0,
+              background: "linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 100%)",
+            }} />
+            <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "64px 32px", color: "white" }}>
+              <div style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", opacity: 0.8, marginBottom: "16px", fontWeight: "700" }}>
+                {offers[activeOffer].tag}
+              </div>
+              <h3 style={{
+                fontSize: "clamp(32px, 6vw, 52px)", fontWeight: "900",
+                color: offers[activeOffer].accent, margin: "0 0 16px 0", letterSpacing: "-1px",
+              }}>
+                {offers[activeOffer].title}
+              </h3>
+              <p style={{ opacity: 0.85, marginBottom: "36px", fontSize: "17px", maxWidth: "500px", margin: "0 auto 36px" }}>{offers[activeOffer].subtitle}</p>
+              <button onClick={() => navigate("booking")} style={{
+                background: offers[activeOffer].accent, color: "#1C1C1C",
+                border: "none", padding: "16px 40px", borderRadius: "12px",
+                fontWeight: "800", cursor: "pointer", fontSize: "16px",
+                transition: "all 0.3s",
+                boxShadow: `0 8px 24px ${offers[activeOffer].accent}40`,
+              }}
+                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `0 12px 32px ${offers[activeOffer].accent}60`; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `0 8px 24px ${offers[activeOffer].accent}40`; }}>
+                {offers[activeOffer].cta} →
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -702,79 +739,6 @@ export default function HomePage({ navigate }) {
         </div>
       </section>
 
-      {/* ── AI AGENTS SECTION ── */}
-      <section style={{ background: "#FFFBF7", padding: "120px 24px", position: "relative", overflow: "hidden" }}>
-        <div style={{
-          position: "absolute", top: "-100px", left: "-100px", width: "400px", height: "400px",
-          background: "radial-gradient(circle, rgba(212,165,116,0.1) 0%, transparent 70%)",
-          borderRadius: "50%", zIndex: 0,
-        }} />
-        <div style={{ maxWidth: "1400px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-          <div style={{ textAlign: "center", marginBottom: "72px" }}>
-            <div style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", color: "#B8956A", marginBottom: "12px", fontWeight: "700" }}>🤖 AI Powered</div>
-            <h2 style={{ fontSize: "48px", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-1px" }}>Get Expert Beauty Advice</h2>
-            <p style={{ color: "#7A7A7A", marginTop: "16px", fontSize: "16px", maxWidth: "600px", margin: "16px auto 0" }}>Chat with our AI assistant or speak directly with Priya, our virtual beauty expert. Get personalized recommendations anytime.</p>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "32px" }}>
-            {/* Voice Agent Card */}
-            <div style={{
-              background: "white", borderRadius: "24px", padding: "40px 32px", boxShadow: "0 8px 24px rgba(212,165,116,0.18)",
-              border: "1px solid #E8E0D8", transition: "all 0.3s", textAlign: "center",
-              animation: "slideInUp 0.6s ease-out",
-            }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 20px 50px rgba(212,165,116,0.35)"; e.currentTarget.style.transform = "translateY(-6px)"; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 8px 24px rgba(212,165,116,0.18)"; e.currentTarget.style.transform = "translateY(0)"; }}>
-              <div style={{ fontSize: "60px", marginBottom: "16px" }}>🎙️</div>
-              <h3 style={{ fontSize: "24px", fontWeight: "900", color: "#1C1C1C", margin: "0 0 12px 0" }}>Voice Call</h3>
-              <p style={{ color: "#7A7A7A", fontSize: "15px", lineHeight: "1.6", marginBottom: "28px" }}>Speak with Priya, our AI beauty consultant. Get instant advice on haircuts, treatments, and styling tips.</p>
-              <button
-                onClick={() => {
-                  const event = new CustomEvent("open-voice-agent");
-                  window.dispatchEvent(event);
-                }}
-                style={{
-                  width: "100%", background: "linear-gradient(135deg, #D4A574, #B8956A)",
-                  color: "white", border: "none", padding: "14px 28px", borderRadius: "12px",
-                  fontWeight: "700", fontSize: "15px", cursor: "pointer",
-                  transition: "all 0.3s", boxShadow: "0 8px 20px rgba(184,149,106,0.25)",
-                }}
-                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 28px rgba(184,149,106,0.35)"; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 8px 20px rgba(184,149,106,0.25)"; }}>
-                Start Voice Call →
-              </button>
-            </div>
-
-            {/* Chat Agent Card */}
-            <div style={{
-              background: "white", borderRadius: "24px", padding: "40px 32px", boxShadow: "0 8px 24px rgba(212,165,116,0.18)",
-              border: "1px solid #E8E0D8", transition: "all 0.3s", textAlign: "center",
-              animation: "slideInUp 0.7s ease-out",
-            }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 20px 50px rgba(212,165,116,0.35)"; e.currentTarget.style.transform = "translateY(-6px)"; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 8px 24px rgba(212,165,116,0.18)"; e.currentTarget.style.transform = "translateY(0)"; }}>
-              <div style={{ fontSize: "60px", marginBottom: "16px" }}>💬</div>
-              <h3 style={{ fontSize: "24px", fontWeight: "900", color: "#1C1C1C", margin: "0 0 12px 0" }}>Chat with AI</h3>
-              <p style={{ color: "#7A7A7A", fontSize: "15px", lineHeight: "1.6", marginBottom: "28px" }}>Text our AI assistant for beauty tips, product recommendations, and salon information. Available 24/7.</p>
-              <button
-                onClick={() => {
-                  const event = new CustomEvent("open-ai-chat");
-                  window.dispatchEvent(event);
-                }}
-                style={{
-                  width: "100%", background: "transparent", color: "#D4A574",
-                  border: "2px solid #D4A574", padding: "12px 28px", borderRadius: "12px",
-                  fontWeight: "700", fontSize: "15px", cursor: "pointer",
-                  transition: "all 0.3s",
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background = "#D4A574"; e.currentTarget.style.color = "white"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#D4A574"; }}>
-                Open Chat →
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ── PREMIUM REVIEWS SECTION ── */}
       <section style={{ background: "#F5F0EA", padding: "120px 24px", position: "relative", overflow: "hidden" }}>
         <div style={{
@@ -833,7 +797,7 @@ export default function HomePage({ navigate }) {
               📍 Salon Locator
             </div>
             <h3 style={{ fontSize: "28px", fontWeight: "900", color: "white", margin: "0 0 24px 0", letterSpacing: "-0.5px" }}>
-              Find Nearest Lakme Salon
+              Find Nearest Goodness Glamour Salon
             </h3>
 
             {/* Styled Map Card with Glassmorphic design */}
@@ -847,13 +811,13 @@ export default function HomePage({ navigate }) {
             }}>
               {/* Map Iframe */}
               <iframe
-                title="Lakme Salon Map"
+                title="Goodness Glamour Salon Map"
                 width="100%"
                 height="220"
                 style={{ border: 0, borderRadius: "16px", marginBottom: "20px", background: "#1a1a1a" }}
                 loading="lazy"
                 allowFullScreen
-                src={`https://maps.google.com/maps?q=Lakme%20Salon%20${encodeURIComponent(selectedSalon.name + ", " + selectedSalon.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                src="https://maps.google.com/maps?q=Goodness%20Glamour%20Whitefield%20Bangalore&z=15&output=embed"
               ></iframe>
 
               {/* Active Salon details */}
@@ -949,11 +913,11 @@ export default function HomePage({ navigate }) {
                       }}></span>
                       Finding Nearest...
                     </>
-                  ) : "📍 Find Nearest Salon"}
+                  ) : "📍 Locate Goodness Glamour"}
                 </button>
 
                 <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(selectedSalon.name + ", " + selectedSalon.address)}`}
+                  href="https://maps.app.goo.gl/xUrxGaKKfJ5koJSZ9"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{

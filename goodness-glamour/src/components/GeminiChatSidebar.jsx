@@ -87,7 +87,7 @@ formData.append("sessionId", "website-user");
 if (selectedImage?.file) {
   formData.append("image", selectedImage.file);
 }
-
+console.log("VITE_API_URL =", import.meta.env.VITE_API_URL);
 const response = await fetch(
   `${import.meta.env.VITE_API_URL}/api/chat`, {
   method: "POST",

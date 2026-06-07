@@ -228,7 +228,6 @@ export default function BookingPage({ navigate }) {
                     <span className={selected.date ? "text-[#1C1C1C] font-semibold" : "text-[#9A9A9A]"}>
                       {selected.date ? formatDateToDDMMYYYY(selected.date) : "Select Date (DD/MM/YYYY)"}
                     </span>
-                    <span style={{ color: "#D4A574", fontSize: "18px" }}>📅</span>
                   </div>
                   {/* Invisible native input placed over it to trigger native calendar controls */}
                   <input

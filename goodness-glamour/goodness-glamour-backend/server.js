@@ -25,7 +25,7 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://goodness-glamour-4u7x.onrender.com"
+    "https://goodness-glamour-2.onrender.com"
   ],
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],

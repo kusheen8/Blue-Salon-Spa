@@ -1,6 +1,15 @@
 import { useState } from "react";
 const API = `${import.meta.env.VITE_API_URL}/api`;
 
+const formatDateToDDMMYYYY = (dateString) => {
+  if (!dateString) return "";
+  const parts = dateString.split("-"); // yyyy-mm-dd
+  if (parts.length === 3) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return dateString;
+};
+
 const services = [
   { id: 1, name: "Haircut & Styling", price: 599, duration: "45 min", icon: "✂️" },
   { id: 2, name: "Hair Coloring", price: 1499, duration: "2 hrs", icon: "🎨" },
@@ -81,7 +90,7 @@ export default function BookingPage({ navigate }) {
         <div style={{ background: "white", borderRadius: "16px", padding: "28px", border: "1px solid rgba(212, 165, 116, 0.3)", marginBottom: "24px", boxShadow: "0 10px 30px rgba(212, 165, 116, 0.08)" }}>
           {[
             ["Service", `${selected.service?.icon} ${selected.service?.name}`],
-            ["Date", selected.date],
+            ["Date", formatDateToDDMMYYYY(selected.date)],
             ["Time", selected.time],
             ["Stylist", selected.stylist?.name],
           ].map(([k, v]) => (
@@ -213,9 +222,30 @@ export default function BookingPage({ navigate }) {
               <h2 className="text-xl font-display font-semibold text-[#1C1C1C] mb-6">Pick Date & Time</h2>
               <div className="mb-6">
                 <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Select Date</label>
-                <input type="date" min={today} value={selected.date}
-                  onChange={(e) => update("date", e.target.value)}
-                  className="w-full border border-[#E8E0D8] rounded-xl px-4 py-3 focus:outline-none focus:border-[#B8956A] transition-colors" />
+                <div className="relative">
+                  {/* Custom styled display box to guarantee consistent format & color on all devices */}
+                  <div className="w-full border border-[#E8E0D8] rounded-xl px-4 py-3 bg-white flex justify-between items-center cursor-pointer pointer-events-none">
+                    <span className={selected.date ? "text-[#1C1C1C] font-semibold" : "text-[#9A9A9A]"}>
+                      {selected.date ? formatDateToDDMMYYYY(selected.date) : "Select Date (DD/MM/YYYY)"}
+                    </span>
+                    <span style={{ color: "#D4A574", fontSize: "18px" }}>📅</span>
+                  </div>
+                  {/* Invisible native input placed over it to trigger native calendar controls */}
+                  <input
+                    type="date"
+                    min={today}
+                    value={selected.date}
+                    onChange={(e) => update("date", e.target.value)}
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      width: "100%",
+                      height: "100%",
+                      opacity: 0,
+                      cursor: "pointer",
+                    }}
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#4A4A4A] mb-3">Select Time</label>
@@ -282,7 +312,7 @@ export default function BookingPage({ navigate }) {
                 {[
                   ["Service", `${selected.service?.icon} ${selected.service?.name}`],
                   ["Price", `₹${selected.service?.price}`],
-                  ["Date", selected.date],
+                  ["Date", formatDateToDDMMYYYY(selected.date)],
                   ["Time", selected.time],
                   ["Stylist", selected.stylist?.name],
                 ].map(([k, v]) => (

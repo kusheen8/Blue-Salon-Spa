@@ -134,7 +134,7 @@ let reply = data.reply || "✨ Sorry, I couldn't respond right now.";
       <button
         onClick={() => setOpen(!open)}
         style={{
-          position: "fixed", right: open ? "370px" : "0", top: "50%", transform: "translateY(-50%)",
+          position: "fixed", right: open ? "min(370px, 100%)" : "0", top: "50%", transform: "translateY(-50%)",
           zIndex: 9999, border: "none", cursor: "pointer", padding: "16px 10px",
           borderRadius: "14px 0 0 14px", background: "linear-gradient(180deg, #D4A574 0%, #B8956A 50%, #6E4A31 100%)",
           color: "white", fontWeight: "900", letterSpacing: "1px", boxShadow: "-6px 4px 24px rgba(212,165,116,0.35)",
@@ -154,7 +154,7 @@ let reply = data.reply || "✨ Sorry, I couldn't respond right now.";
           position: "fixed",
           top: 0,
           right: open ? 0 : "-370px",
-          width: "370px",
+          width: "min(370px, 100%)",
           height: "100vh",
           background: "#fdf8f4",
           backdropFilter: "blur(18px)",

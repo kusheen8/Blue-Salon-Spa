@@ -169,9 +169,9 @@ export default function AdminPage({ navigate }) {
         </Modal>
       )}
 
-      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "48px 24px 64px" }}>
+      <div style={{ maxWidth: "1200px", margin: "0 auto" }} className="px-4 py-8 sm:px-6 sm:py-12 md:py-16">
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: window.innerWidth < 768 ? "flex-start" : "center", marginBottom: "48px", flexWrap: "wrap", gap: "24px" }}>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
           <div>
             <div style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", color: "#D4A574", marginBottom: "8px", fontWeight: "800" }}>Admin Panel</div>
             <h1 style={{ fontSize: "36px", fontWeight: "900", color: dark, margin: 0, fontFamily: "'Playfair Display', serif", letterSpacing: "-0.5px" }}>Salon Dashboard</h1>
@@ -284,14 +284,15 @@ export default function AdminPage({ navigate }) {
               ))}
             </div>
 
-            <div style={{ background: "white", borderRadius: "16px", border: `1px solid ${border}`, overflow: "hidden" }}>
-              {/* Table head */}
-              <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1.2fr 1fr 1fr 0.8fr 0.8fr", padding: "12px 20px", background: "#F5F0EA", fontSize: "11px", fontWeight: "700", color: gray, textTransform: "uppercase", letterSpacing: "1px" }}>
-                <span>Client</span><span>Service</span><span>Stylist</span><span>Date & Time</span><span>Status</span><span>Actions</span>
-              </div>
+            <div style={{ background: "white", borderRadius: "16px", border: `1px solid ${border}`, overflow: "hidden" }} className="w-full overflow-x-auto">
+              <div style={{ minWidth: "900px" }}>
+                {/* Table head */}
+                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1.2fr 1fr 1fr 0.8fr 0.8fr", padding: "12px 20px", background: "#F5F0EA", fontSize: "11px", fontWeight: "700", color: gray, textTransform: "uppercase", letterSpacing: "1px" }}>
+                  <span>Client</span><span>Service</span><span>Stylist</span><span>Date & Time</span><span>Status</span><span>Actions</span>
+                </div>
 
-              {filtered.map((b, i) => (
-                <div key={b.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 1.2fr 1fr 1fr 0.8fr 0.8fr", padding: "16px 20px", alignItems: "center", borderTop: i === 0 ? "none" : `1px solid ${border}` }}>
+                {filtered.map((b, i) => (
+                  <div key={b.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 1.2fr 1fr 1fr 0.8fr 0.8fr", padding: "16px 20px", alignItems: "center", borderTop: i === 0 ? "none" : `1px solid ${border}` }}>
                   <div>
                     <div style={{ fontWeight: "600", color: dark, fontSize: "14px" }}>{b.client}</div>
                     <div style={{ fontSize: "12px", color: gray }}>📞 {b.phone}</div>
@@ -317,6 +318,7 @@ export default function AdminPage({ navigate }) {
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           </div>
         )}

@@ -201,7 +201,7 @@ export default function Navbar({ navigate, currentPage, isLoggedIn, isAdmin, onL
             height: "2px",
             background: "#1C1C1C",
             transition: "all 0.3s",
-            transform: menuOpen ? "rotate(45deg) translateY(10px)" : "none",
+            transform: menuOpen ? "rotate(45deg) translate(5px, 6px)" : "none",
           }} />
           <span style={{
             width: "24px",
@@ -215,7 +215,7 @@ export default function Navbar({ navigate, currentPage, isLoggedIn, isAdmin, onL
             height: "2px",
             background: "#1C1C1C",
             transition: "all 0.3s",
-            transform: menuOpen ? "rotate(-45deg) translateY(-10px)" : "none",
+            transform: menuOpen ? "rotate(-45deg) translate(5px, -6px)" : "none",
           }} />
         </button>
       </div>
@@ -228,6 +228,8 @@ export default function Navbar({ navigate, currentPage, isLoggedIn, isAdmin, onL
           borderTop: "1px solid #E8E0D8",
           padding: "20px 24px",
           animation: "slideInDown 0.3s ease-out",
+          maxHeight: "calc(100vh - 70px)",
+          overflowY: "auto",
         }} className="flex flex-col md:hidden">
           {links.map((l) => (
             <button

@@ -177,42 +177,6 @@ export default function HomePage({ navigate }) {
     <div style={{ paddingTop: "0" }}>
       <style>
         {`
-          @media (max-width: 768px) {
-            .hero-grid {
-              grid-template-columns: 1fr !important;
-              gap: 40px !important;
-              padding: 60px 24px !important;
-            }
-            .services-grid {
-              grid-template-columns: 1fr !important;
-            }
-            .gallery-grid {
-              grid-template-columns: 1fr !important;
-              grid-template-rows: auto !important;
-            }
-            .gallery-item {
-              grid-column: span 1 !important;
-            }
-          }
-          @media (min-width: 769px) and (max-width: 1024px) {
-            .services-grid {
-              grid-template-columns: repeat(2, 1fr) !important;
-            }
-            .gallery-grid {
-              grid-template-columns: repeat(2, 1fr) !important;
-            }
-          }
-          .footer-content-grid {
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 60px;
-          }
-          @media (max-width: 991px) {
-            .footer-content-grid {
-              grid-template-columns: 1fr !important;
-              gap: 40px !important;
-            }
-          }
           @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -253,12 +217,10 @@ export default function HomePage({ navigate }) {
 
         <div style={{
           position: "relative", zIndex: 2,
-          maxWidth: "1200px", margin: "0 auto",
-          padding: "80px 24px",
-          display: "grid", gridTemplateColumns: "1fr 1fr",
-          gap: "64px", alignItems: "center", width: "100%",
+          margin: "0 auto",
+          alignItems: "center", width: "100%",
         }}
-          className="hero-grid"
+          className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 max-w-[1200px] px-6 py-12 md:py-20"
         >
           <div style={{ animation: "fadeInUp 1s ease-out" }}>
             <span style={{
@@ -271,23 +233,24 @@ export default function HomePage({ navigate }) {
               ✨ Premium Salon • Bengaluru
             </span>
             <h1 style={{
-              fontSize: "clamp(42px, 7vw, 76px)", fontWeight: "900",
+              fontSize: "clamp(36px, 7vw, 76px)", fontWeight: "900",
               color: "white", lineHeight: "1.08", margin: "0 0 28px 0",
               letterSpacing: "-1.5px",
             }}>
               Redefine<br /><span style={{ color: "#D4A574", backgroundImage: "linear-gradient(135deg, #D4A574, #B8956A)", backgroundClip: "text", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Your</span><br />Glamour.
             </h1>
-            <p style={{ color: "#D0C8C0", fontSize: "18px", lineHeight: "1.8", marginBottom: "48px", maxWidth: "480px", fontWeight: "300" }}>
+            <p style={{ color: "#D0C8C0", fontSize: "16px", md: "18px", lineHeight: "1.8", marginBottom: "40px", maxWidth: "480px", fontWeight: "300" }} className="text-sm md:text-lg">
               Luxury beauty services crafted by certified specialists. Premium hair styling, expert treatments, and transformative experiences designed just for you.
             </p>
-            <div style={{ display: "flex", gap: "18px", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: "14px", flexWrap: "wrap" }}>
               <button onClick={() => navigate("booking")} style={{
                 background: "linear-gradient(135deg, #D4A574, #B8956A)", color: "white", border: "none",
-                padding: "18px 36px", borderRadius: "12px", fontSize: "16px",
+                borderRadius: "12px", fontSize: "15px",
                 fontWeight: "700", cursor: "pointer",
                 boxShadow: "0 12px 40px rgba(184,149,106,0.35)",
                 transition: "all 0.3s",
               }}
+                className="px-6 py-4 sm:px-8 sm:py-4.5"
                 onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 16px 50px rgba(184,149,106,0.45)"; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(184,149,106,0.35)"; }}>
                 Book Appointment
@@ -297,9 +260,10 @@ export default function HomePage({ navigate }) {
                 style={{
                   background: "transparent", color: "white",
                   border: "2px solid rgba(255,255,255,0.4)",
-                  padding: "16px 36px", borderRadius: "12px", fontSize: "16px", fontWeight: "700", cursor: "pointer",
+                  borderRadius: "12px", fontSize: "15px", fontWeight: "700", cursor: "pointer",
                   transition: "all 0.3s",
                 }}
+                className="px-6 py-4 sm:px-8 sm:py-4.5"
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.8)"; e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.4)"; e.currentTarget.style.background = "transparent"; }}
               >
@@ -309,20 +273,21 @@ export default function HomePage({ navigate }) {
           </div>
 
           {/* Enhanced stats grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+          <div className="grid grid-cols-2 gap-4 sm:gap-6">
             {stats.map((s, idx) => (
               <div key={s.label} style={{
                 background: "rgba(255,255,255,0.08)",
                 border: "1px solid rgba(255,255,255,0.15)",
                 backdropFilter: "blur(20px)",
-                borderRadius: "20px", padding: "32px",
+                borderRadius: "20px",
                 transition: "all 0.3s",
                 animation: `slideInUp ${0.5 + idx * 0.1}s ease-out`,
               }}
+                className="p-4 sm:p-8"
                 onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.transform = "translateY(-4px)"; }}
                 onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = "translateY(0)"; }}>
-                <div style={{ fontSize: "36px", fontWeight: "900", color: "#D4A574", marginBottom: "8px" }}>{s.value}</div>
-                <div style={{ fontSize: "14px", color: "#B8B0A8", fontWeight: "500" }}>{s.label}</div>
+                <div style={{ fontSize: "28px", sm: "36px", fontWeight: "900", color: "#D4A574", marginBottom: "8px" }} className="text-2xl sm:text-4xl">{s.value}</div>
+                <div style={{ fontSize: "12px", sm: "14px", color: "#B8B0A8", fontWeight: "500" }} className="text-xs sm:text-sm">{s.label}</div>
               </div>
             ))}
           </div>
@@ -411,25 +376,26 @@ export default function HomePage({ navigate }) {
         </div>
       </section>
       {/* ── AI AGENTS SECTION ── */}
-      <section style={{ background: "#FFFBF7", padding: "120px 24px", position: "relative", overflow: "hidden" }}>
+      <section style={{ background: "#FFFBF7", position: "relative", overflow: "hidden" }} className="py-16 md:py-28 px-4 sm:px-8">
         <div style={{
           position: "absolute", top: "-100px", left: "-100px", width: "400px", height: "400px",
           background: "radial-gradient(circle, rgba(212,165,116,0.1) 0%, transparent 70%)",
           borderRadius: "50%", zIndex: 0,
         }} />
         <div style={{ maxWidth: "1400px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-          <div style={{ textAlign: "center", marginBottom: "72px" }}>
+          <div style={{ textAlign: "center", marginBottom: "56px" }}>
             <div style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", color: "#B8956A", marginBottom: "12px", fontWeight: "700" }}>🤖 AI Powered</div>
-            <h2 style={{ fontSize: "48px", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-1px" }}>Get Expert Beauty Advice</h2>
+            <h2 style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-1px" }} className="font-display">Get Expert Beauty Advice</h2>
             <p style={{ color: "#7A7A7A", marginTop: "16px", fontSize: "16px", maxWidth: "600px", margin: "16px auto 0" }}>Chat with our AI assistant or speak directly with Priya, our virtual beauty expert. Get personalized recommendations anytime.</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "32px" }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Voice Agent Card */}
             <div style={{
-              background: "white", borderRadius: "24px", padding: "40px 32px", boxShadow: "0 8px 24px rgba(212,165,116,0.18)",
+              background: "white", borderRadius: "24px", padding: "40px 24px", boxShadow: "0 8px 24px rgba(212,165,116,0.18)",
               border: "1px solid #E8E0D8", transition: "all 0.3s", textAlign: "center",
               animation: "slideInUp 0.6s ease-out",
             }}
+              className="sm:p-8 md:p-10"
               onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 20px 50px rgba(212,165,116,0.35)"; e.currentTarget.style.transform = "translateY(-6px)"; }}
               onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 8px 24px rgba(212,165,116,0.18)"; e.currentTarget.style.transform = "translateY(0)"; }}>
               <div style={{ fontSize: "60px", marginBottom: "16px" }}>🎙️</div>
@@ -454,10 +420,11 @@ export default function HomePage({ navigate }) {
 
             {/* Chat Agent Card */}
             <div style={{
-              background: "white", borderRadius: "24px", padding: "40px 32px", boxShadow: "0 8px 24px rgba(212,165,116,0.18)",
+              background: "white", borderRadius: "24px", padding: "40px 24px", boxShadow: "0 8px 24px rgba(212,165,116,0.18)",
               border: "1px solid #E8E0D8", transition: "all 0.3s", textAlign: "center",
               animation: "slideInUp 0.7s ease-out",
             }}
+              className="sm:p-8 md:p-10"
               onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 20px 50px rgba(212,165,116,0.35)"; e.currentTarget.style.transform = "translateY(-6px)"; }}
               onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 8px 24px rgba(212,165,116,0.18)"; e.currentTarget.style.transform = "translateY(0)"; }}>
               <div style={{ fontSize: "60px", marginBottom: "16px" }}>💬</div>
@@ -484,7 +451,7 @@ export default function HomePage({ navigate }) {
       </section>
 
       {/* ── PREMIUM SERVICES SECTION ── */}
-      <section id="services-section" style={{ background: "white", padding: "120px 24px", position: "relative", overflow: "hidden" }}>
+      <section id="services-section" style={{ background: "white", position: "relative", overflow: "hidden" }} className="py-16 md:py-28 px-4 sm:px-8">
         {/* Decorative elements */}
         <div style={{
           position: "absolute", top: "0", left: "-100px", width: "400px", height: "400px",
@@ -492,12 +459,12 @@ export default function HomePage({ navigate }) {
           borderRadius: "50%", zIndex: 0,
         }} />
         <div style={{ maxWidth: "1400px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-          <div style={{ textAlign: "center", marginBottom: "80px" }}>
+          <div style={{ textAlign: "center", marginBottom: "56px" }}>
             <div style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", color: "#B8956A", marginBottom: "12px", fontWeight: "700" }}>Our Expertise</div>
-            <h2 style={{ fontSize: "48px", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-1px" }}>Premium Services</h2>
+            <h2 style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-1px" }} className="font-display">Premium Services</h2>
             <p style={{ color: "#7A7A7A", marginTop: "20px", fontSize: "17px", maxWidth: "600px", margin: "20px auto 0" }}>Expertly crafted treatments tailored to enhance your natural beauty and boost your confidence.</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "28px" }} className="services-grid">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {services.map((s, i) => (
               <div
                 key={s.title}
@@ -536,7 +503,7 @@ export default function HomePage({ navigate }) {
                   }}>{s.icon}</span>
                 </div>
                 {/* Card body */}
-                <div style={{ padding: "28px" }}>
+                <div className="p-6 sm:p-7">
                   <h3 style={{ fontSize: "19px", fontWeight: "700", color: "#1C1C1C", margin: "0 0 10px 0", letterSpacing: "-0.3px" }}>{s.title}</h3>
                   <p style={{ fontSize: "15px", color: "#7A7A7A", lineHeight: "1.7", marginBottom: "20px" }}>{s.desc}</p>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -561,7 +528,7 @@ export default function HomePage({ navigate }) {
       </section>
 
       {/* ── PREMIUM OFFERS SECTION ── */}
-      <section style={{ background: "linear-gradient(135deg, #F5F0EA 0%, #FFFBF7 100%)", padding: "100px 24px", position: "relative", overflow: "hidden" }}>
+      <section style={{ background: "linear-gradient(135deg, #F5F0EA 0%, #FFFBF7 100%)", position: "relative", overflow: "hidden" }} className="py-16 md:py-24 px-4 sm:px-8">
         {/* Decorative elements */}
         <div style={{
           position: "absolute", top: "-50px", right: "-50px", width: "300px", height: "300px",
@@ -574,7 +541,7 @@ export default function HomePage({ navigate }) {
         }}>
           <div style={{ textAlign: "center", marginBottom: "56px" }}>
             <div style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", color: "#B8956A", marginBottom: "12px", fontWeight: "700" }}>⏰ Time-Limited Offers</div>
-            <h2 style={{ fontSize: "42px", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-1px" }}>Exclusive Deals Today</h2>
+            <h2 style={{ fontSize: "clamp(32px, 5vw, 42px)", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-1px" }} className="font-display">Exclusive Deals Today</h2>
             <p style={{ color: "#7A7A7A", marginTop: "16px", fontSize: "16px" }}>Limited-time offers designed to give you premium beauty at exceptional value.</p>
           </div>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", marginBottom: "40px", flexWrap: "wrap" }}>
@@ -613,17 +580,17 @@ export default function HomePage({ navigate }) {
               position: "absolute", inset: 0,
               background: "linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 100%)",
             }} />
-            <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "64px 32px", color: "white" }}>
+            <div style={{ position: "relative", zIndex: 2, textAlign: "center", color: "white" }} className="px-5 py-12 sm:px-12 sm:py-16">
               <div style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", opacity: 0.8, marginBottom: "16px", fontWeight: "700" }}>
                 {offers[activeOffer].tag}
               </div>
               <h3 style={{
-                fontSize: "clamp(32px, 6vw, 52px)", fontWeight: "900",
+                fontSize: "clamp(28px, 6vw, 52px)", fontWeight: "900",
                 color: offers[activeOffer].accent, margin: "0 0 16px 0", letterSpacing: "-1px",
-              }}>
+              }} className="font-display">
                 {offers[activeOffer].title}
               </h3>
-              <p style={{ opacity: 0.85, marginBottom: "36px", fontSize: "17px", maxWidth: "500px", margin: "0 auto 36px" }}>{offers[activeOffer].subtitle}</p>
+              <p style={{ opacity: 0.85, marginBottom: "36px", fontSize: "16px", sm: "17px", maxWidth: "500px", margin: "0 auto 36px" }}>{offers[activeOffer].subtitle}</p>
               <button onClick={() => navigate("booking")} style={{
                 background: offers[activeOffer].accent, color: "#1C1C1C",
                 border: "none", padding: "16px 40px", borderRadius: "12px",
@@ -641,35 +608,29 @@ export default function HomePage({ navigate }) {
       </section>
 
       {/* ── GALLERY SECTION ── */}
-      <section id="gallery-section" style={{ background: "#F5F0EA", padding: "120px 24px", position: "relative", overflow: "hidden" }}>
+      <section id="gallery-section" style={{ background: "#F5F0EA", position: "relative", overflow: "hidden" }} className="py-16 md:py-28 px-4 sm:px-8">
         <div style={{
           position: "absolute", bottom: "-100px", right: "-100px", width: "400px", height: "400px",
           background: "radial-gradient(circle, rgba(212,165,116,0.08) 0%, transparent 70%)",
           borderRadius: "50%", zIndex: 0,
         }} />
         <div style={{ maxWidth: "1400px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-          <div style={{ textAlign: "center", marginBottom: "72px" }}>
+          <div style={{ textAlign: "center", marginBottom: "56px" }}>
             <div style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", color: "#B8956A", marginBottom: "12px", fontWeight: "700" }}>Our Portfolio</div>
-            <h2 style={{ fontSize: "48px", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-1px" }}>Transformation Gallery</h2>
+            <h2 style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-1px" }} className="font-display">Transformation Gallery</h2>
             <p style={{ color: "#7A7A7A", marginTop: "20px", fontSize: "17px" }}>A showcase of beautiful transformations and expert craftsmanship.</p>
           </div>
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gridTemplateRows: "240px 240px",
-            gap: "16px",
-            autoFlow: "dense",
-          }} className="gallery-grid">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-[240px]">
             {galleryImages.map((g, i) => (
               <div
                 key={i}
                 style={{
-                  position: "relative", borderRadius: "16px", overflow: "hidden",
-                  gridColumn: i === 0 ? "span 2" : "span 1",
+                  position: "relative",
                   cursor: "pointer",
                   boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
                   transition: "all 0.4s",
-                }} className="gallery-item"
+                }}
+                className={`rounded-2xl overflow-hidden ${i === 0 ? "col-span-1 md:col-span-2" : "col-span-1"}`}
                 onMouseEnter={() => setHoveredGallery(i)}
                 onMouseLeave={() => setHoveredGallery(null)}
               >
@@ -685,8 +646,8 @@ export default function HomePage({ navigate }) {
                 <div style={{
                   position: "absolute", inset: 0,
                   background: hoveredGallery === i
-                    ? "linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.15))"
-                    : "linear-gradient(to top, rgba(0,0,0,0.5), transparent)",
+                     ? "linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.15))"
+                     : "linear-gradient(to top, rgba(0,0,0,0.5), transparent)",
                   transition: "background 0.3s",
                 }} />
                 <div style={{
@@ -705,7 +666,7 @@ export default function HomePage({ navigate }) {
       </section>
 
       {/* ── PREMIUM CTA BANNER ── */}
-      <section style={{ background: "linear-gradient(135deg, #1C1C1C 0%, #2D2D2D 100%)", padding: "100px 24px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+      <section style={{ background: "linear-gradient(135deg, #1C1C1C 0%, #2D2D2D 100%)", textAlign: "center", position: "relative", overflow: "hidden" }} className="py-16 md:py-24 px-4 sm:px-8">
         {/* Decorative elements */}
         <div style={{
           position: "absolute", top: "-150px", left: "-150px", width: "400px", height: "400px",
@@ -718,20 +679,21 @@ export default function HomePage({ navigate }) {
           borderRadius: "50%", zIndex: 0,
         }} />
         <div style={{ maxWidth: "800px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-          <h2 style={{ fontSize: "clamp(32px, 6vw, 56px)", fontWeight: "900", color: "white", margin: "0 0 20px 0", letterSpacing: "-1px" }}>
+          <h2 style={{ fontSize: "clamp(32px, 6vw, 56px)", fontWeight: "900", color: "white", margin: "0 0 20px 0", letterSpacing: "-1px" }} className="font-display">
             Ready for a <span style={{ color: "#D4A574" }}>Premium Transformation?</span>
           </h2>
-          <p style={{ color: "#B8B0A8", fontSize: "18px", marginBottom: "48px", lineHeight: "1.7", maxWidth: "600px", margin: "0 auto 48px" }}>
+          <p style={{ color: "#B8B0A8", fontSize: "16px", md: "18px", marginBottom: "40px", lineHeight: "1.7", maxWidth: "600px", margin: "0 auto 40px" }} className="text-sm md:text-lg">
             Book your appointment today and experience luxury beauty crafted just for you. Limited slots available.
           </p>
           <button onClick={() => navigate("booking")} style={{
             background: "linear-gradient(135deg, #D4A574, #B8956A)", color: "white", border: "none",
-            padding: "20px 48px", borderRadius: "12px", fontSize: "17px",
+            borderRadius: "12px", fontSize: "16px",
             fontWeight: "800", cursor: "pointer",
             boxShadow: "0 12px 40px rgba(212,165,116,0.35)",
             transition: "all 0.3s",
             letterSpacing: "-0.3px",
           }}
+            className="px-8 py-5 sm:px-12"
             onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 16px 50px rgba(212,165,116,0.5)"; }}
             onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(212,165,116,0.35)"; }}>
             Reserve Your Spot Now →
@@ -740,17 +702,17 @@ export default function HomePage({ navigate }) {
       </section>
 
       {/* ── PREMIUM REVIEWS SECTION ── */}
-      <section style={{ background: "#F5F0EA", padding: "120px 24px", position: "relative", overflow: "hidden" }}>
+      <section style={{ background: "#F5F0EA", position: "relative", overflow: "hidden" }} className="py-16 md:py-28 px-4 sm:px-8">
         <div style={{
           position: "absolute", top: "-100px", right: "-100px", width: "400px", height: "400px",
           background: "radial-gradient(circle, rgba(212,165,116,0.1) 0%, transparent 70%)",
           borderRadius: "50%", zIndex: 0,
         }} />
         <div style={{ maxWidth: "1400px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "72px", flexWrap: "wrap", gap: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "56px", flexWrap: "wrap", gap: "24px" }}>
             <div>
               <div style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", color: "#B8956A", marginBottom: "12px", fontWeight: "700" }}>Client Testimonials</div>
-              <h2 style={{ fontSize: "48px", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-1px" }}>Loved by Hundreds</h2>
+              <h2 style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-1px" }} className="font-display">Loved by Hundreds</h2>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", background: "white", padding: "14px 24px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
               <span style={{ color: "#D4A574", fontSize: "22px", letterSpacing: "2px" }}>★★★★★</span>
@@ -760,7 +722,7 @@ export default function HomePage({ navigate }) {
               </div>
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "28px" }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {reviews.map((r, idx) => (
               <div key={r.name} style={{
                 background: "white", borderRadius: "20px", padding: "36px", boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
@@ -788,15 +750,15 @@ export default function HomePage({ navigate }) {
       </section>
 
       {/* ── PREMIUM FOOTER ── */}
-      <footer id="contact-section" style={{ background: "linear-gradient(135deg, #1C1C1C 0%, #252525 100%)", color: "white", padding: "80px 24px 40px" }}>
-        <div className="footer-content-grid" style={{ maxWidth: "1400px", margin: "0 auto", marginBottom: "60px" }}>
+      <footer id="contact-section" style={{ background: "linear-gradient(135deg, #1C1C1C 0%, #252525 100%)", color: "white" }} className="pt-16 pb-8 px-4 sm:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 max-w-[1400px] mx-auto mb-16">
 
           {/* Map Integration (Left Side) */}
-          <div>
+          <div className="lg:col-span-7">
             <div style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", color: "#D4A574", marginBottom: "8px", fontWeight: "700" }}>
               📍 Salon Locator
             </div>
-            <h3 style={{ fontSize: "28px", fontWeight: "900", color: "white", margin: "0 0 24px 0", letterSpacing: "-0.5px" }}>
+            <h3 style={{ fontSize: "28px", fontWeight: "900", color: "white", margin: "0 0 24px 0", letterSpacing: "-0.5px" }} className="font-display">
               Find Nearest Goodness Glamour Salon
             </h3>
 
@@ -806,9 +768,10 @@ export default function HomePage({ navigate }) {
               border: "1px solid rgba(255, 255, 255, 0.08)",
               backdropFilter: "blur(12px)",
               borderRadius: "24px",
-              padding: "24px",
               boxShadow: "0 12px 40px rgba(0, 0, 0, 0.2)"
-            }}>
+            }}
+              className="p-5 sm:p-7"
+            >
               {/* Map Iframe */}
               <iframe
                 title="Goodness Glamour Salon Map"
@@ -945,7 +908,7 @@ export default function HomePage({ navigate }) {
           </div>
 
           {/* Left Parts moved to Right Side (Brand & Touch Info stacked vertically) */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "48px", justifyContent: "center" }}>
+          <div className="lg:col-span-5 flex flex-col gap-10 justify-center">
 
             {/* Brand Logo & Description */}
             <div>
@@ -979,7 +942,7 @@ export default function HomePage({ navigate }) {
         </div>
 
         {/* Divider */}
-        <div style={{ maxWidth: "1400px", margin: "0 auto", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "40px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "20px" }}>
+        <div className="max-w-[1400px] mx-auto border-t border-white/10 pt-10 flex flex-col sm:flex-row justify-between items-center gap-5 text-center sm:text-left">
           <div style={{ color: "#7A7A7A", fontSize: "14px" }}>
             © 2026 Goodness Glamour. All rights reserved.
           </div>

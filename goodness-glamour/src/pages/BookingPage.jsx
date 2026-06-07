@@ -72,7 +72,7 @@ export default function BookingPage({ navigate }) {
 
   // ── Booking Confirmed Screen ─────────────────────────────────────────────────
   if (booked) return (
-    <div style={{ paddingTop: "80px", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#FAF8F5", padding: "80px 24px" }}>
+    <div style={{ paddingTop: "80px", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#FAF8F5" }} className="px-4 py-12 sm:px-6 sm:py-20">
       <div style={{ textAlign: "center", maxWidth: "500px" }}>
         <div style={{ fontSize: "72px", marginBottom: "24px", animation: "bounce 1s infinite" }}>🎉</div>
         <h2 style={{ fontSize: "36px", fontWeight: "900", color: "#1C1C1C", marginBottom: "12px", letterSpacing: "-0.5px", fontFamily: "'Playfair Display', serif" }}>Booking Confirmed!</h2>
@@ -113,7 +113,7 @@ export default function BookingPage({ navigate }) {
 
   return (
     <div style={{ paddingTop: "80px", minHeight: "100vh", background: "#FAF8F5" }}>
-      <div style={{ maxWidth: "900px", margin: "0 auto", padding: "48px 24px 64px" }}>
+      <div style={{ maxWidth: "900px", margin: "0 auto" }} className="px-4 py-8 sm:px-6 sm:py-12 md:py-16">
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "56px" }}>
           <span style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", color: "#D4A574", fontWeight: "800", display: "block", marginBottom: "12px" }}>Reserve Your Spot</span>
@@ -174,11 +174,10 @@ export default function BookingPage({ navigate }) {
         <div style={{
           background: "white",
           borderRadius: "24px",
-          padding: "48px 40px",
           boxShadow: "0 16px 40px rgba(212, 165, 116, 0.08), 0 4px 16px rgba(0,0,0,0.02)",
           border: "1px solid rgba(212, 165, 116, 0.22)",
           borderTop: "5px solid #D4A574",
-        }}>
+        }} className="p-5 sm:p-10 md:p-12">
 
           {/* Step 1 */}
           {step === 1 && (
@@ -220,7 +219,7 @@ export default function BookingPage({ navigate }) {
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#4A4A4A] mb-3">Select Time</label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {timeSlots.map((t) => (
                     <button key={t} onClick={() => update("time", t)}
                       className={`py-3 rounded-xl text-sm font-medium border-2 transition-all

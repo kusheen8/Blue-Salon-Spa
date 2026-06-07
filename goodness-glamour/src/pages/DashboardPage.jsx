@@ -19,9 +19,9 @@ export default function DashboardPage({ navigate }) {
 
   return (
     <div style={{ paddingTop: "80px", minHeight: "100vh", background: "#FAF8F5" }}>
-      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "48px 24px 64px" }}>
+      <div style={{ maxWidth: "1100px", margin: "0 auto" }} className="px-4 py-8 sm:px-6 sm:py-12 md:py-16">
         {/* Header */}
-        <div style={{ display: "flex", flexDirection: window.innerWidth < 768 ? "column" : "row", justifyContent: "space-between", alignItems: window.innerWidth < 768 ? "flex-start" : "center", marginBottom: "48px", gap: "24px" }}>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
           <div>
             <span style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", color: "#D4A574", fontWeight: "800", display: "block", marginBottom: "8px" }}>Welcome back</span>
             <h1 style={{ fontSize: "36px", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-0.5px", fontFamily: "'Playfair Display', serif" }}>My Dashboard</h1>
@@ -45,9 +45,10 @@ export default function DashboardPage({ navigate }) {
             { label: "Loyalty Points", value: "249", icon: "⭐", color: "#C49970" },
           ].map((s) => (
             <div key={s.label} style={{
-              background: "white", borderRadius: "16px", padding: "28px 24px", border: "1px solid #E8E0D8",
+              background: "white", borderRadius: "16px", border: "1px solid #E8E0D8",
               boxShadow: "0 4px 16px rgba(0,0,0,0.06)", textAlign: "center", transition: "all 0.3s",
             }}
+            className="p-5 sm:p-7"
             onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 12px 32px rgba(212,165,116,0.15)"; }}
             onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.06)"; }}>
               <div style={{ fontSize: "40px", marginBottom: "16px" }}>{s.icon}</div>
@@ -101,12 +102,13 @@ export default function DashboardPage({ navigate }) {
           )}
           {filtered.map((a) => (
             <div key={a.id} style={{
-              background: "white", borderRadius: "16px", padding: "28px", border: "1px solid #E8E0D8",
+              background: "white", borderRadius: "16px", border: "1px solid #E8E0D8",
               boxShadow: "0 4px 16px rgba(0,0,0,0.06)", transition: "all 0.3s",
             }}
+            className="p-5 sm:p-7"
             onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 8px 24px rgba(212,165,116,0.15)"; e.currentTarget.style.borderColor = "#D4A574"; }}
             onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.06)"; e.currentTarget.style.borderColor = "#E8E0D8"; }}>
-              <div style={{ display: "flex", flexDirection: window.innerWidth < 768 ? "column" : "row", alignItems: window.innerWidth < 768 ? "flex-start" : "center", justifyContent: "space-between", gap: "24px" }}>
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 w-full">
                 <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
                   <div style={{
                     width: "56px", height: "56px", background: "linear-gradient(135deg, #D4A574, #B8956A)",
@@ -118,7 +120,7 @@ export default function DashboardPage({ navigate }) {
                     <p style={{ fontSize: "13px", color: "#9A9A9A", margin: "6px 0 0 0", fontWeight: "600" }}>with {a.stylist}</p>
                   </div>
                 </div>
-                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "24px" }}>
+                <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                   <div style={{ fontSize: "14px" }}>
                     <div style={{ fontSize: "12px", color: "#9A9A9A", fontWeight: "700", marginBottom: "4px", textTransform: "uppercase" }}>Date</div>
                     <div style={{ fontWeight: "800", color: "#1C1C1C" }}>{a.date}</div>

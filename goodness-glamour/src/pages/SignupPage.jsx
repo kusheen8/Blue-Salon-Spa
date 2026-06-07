@@ -11,8 +11,8 @@ export default function SignupPage({ navigate, onLogin }) {
   return (
     <div style={{
       paddingTop: "80px", minHeight: "100vh", background: "linear-gradient(135deg, #FAF8F5 0%, #FFFBF7 100%)",
-      display: "flex", alignItems: "center", justifyContent: "center", padding: "24px",
-    }}>
+      display: "flex", alignItems: "center", justifyContent: "center",
+    }} className="px-4 py-12 sm:px-6 sm:py-16">
       <div style={{ width: "100%", maxWidth: "420px" }}>
         {/* Logo & Header */}
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
@@ -23,7 +23,7 @@ export default function SignupPage({ navigate, onLogin }) {
         </div>
 
         {/* Signup Card */}
-        <div style={{ background: "white", borderRadius: "16px", padding: "32px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", border: "1px solid #E8E0D8" }}>
+        <div style={{ background: "white", borderRadius: "16px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", border: "1px solid #E8E0D8" }} className="p-6 sm:p-8">
           <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
             {/* Full Name */}
             <div>

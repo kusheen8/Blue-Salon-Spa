@@ -18,21 +18,23 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const { BrevoClient } = require("@getbrevo/brevo");
 import booking from "./Models/booking.js";
+import User from "./Models/user.js";
 import fs from "fs";
 import connectDB from "./config/db.js";
 connectDB();
 const app = express();
-app.use(cors({
+const corsOptions = {
   origin: [
     "http://localhost:5173",
     "https://goodness-glamour-2.onrender.com"
   ],
-  methods: ["GET", "POST", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
-}));
+};
 
-app.options(/.*/, cors());
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 app.use("/api/voice", voiceRoutes);
 app.use("/api/sms", smsRoutes); app.use("/api/whatsapp", whatsappRoutes);
@@ -256,7 +258,30 @@ app.post("/api/verify-otp", (req, res) => {
 // ─── ROUTE 3: Booking Confirmation ───────────────────────────────────────────
 app.post("/api/booking-confirm", async (req, res) => {
   const { name, email, phone, service, date, time, stylist, price } = req.body;
-  await booking.create({ name, email, phone, service, date, time, stylist, price, oneHourReminderSent: false, fifteenMinReminderSent: false, source: "manual" });
+  await booking.create({ name, email, phone, service, date, time, stylist, price, status: "upcoming", oneHourReminderSent: false, fifteenMinReminderSent: false, source: "manual" });
+
+  try {
+    const uEmail = email ? email.toLowerCase() : "";
+    if (uEmail) {
+      const existingUser = await User.findOne({ email: uEmail });
+      if (existingUser) {
+        let updated = false;
+        if (phone && (!existingUser.phone || existingUser.phone === "N/A")) {
+          existingUser.phone = phone;
+          updated = true;
+        }
+        if (name && existingUser.name === existingUser.email.split("@")[0]) {
+          existingUser.name = name;
+          updated = true;
+        }
+        if (updated) {
+          await existingUser.save();
+        }
+      }
+    }
+  } catch (uErr) {
+    console.error("Failed to update user in booking confirm:", uErr.message);
+  }
 
   const msg = `✅ Booking Confirmed!\n\nService: ${service}\nDate: ${date}\nTime: ${time}\nStylist: ${stylist}\nTotal: ₹${price}\n\nSee you soon! 💇‍♀️`;
 
@@ -424,6 +449,135 @@ app.post("/api/thank-you", async (req, res) => {
   } catch (err) {
     console.error("Thank you error:", err);
     res.status(500).json({ error: "Failed to send thank you", details: err.message });
+  }
+});
+
+// ─── ROUTE 4.1: Get Bookings ─────────────────────────────────────────────────
+app.get("/api/bookings", async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res.status(200).json([]);
+    }
+    const bookingsList = await booking.find({ email }).sort({ createdAt: -1 });
+    if (!bookingsList) {
+      return res.status(200).json([]);
+    }
+    res.status(200).json(bookingsList);
+  } catch (err) {
+    console.error("Get bookings error:", err);
+    res.status(500).json({ error: "Failed to get bookings", details: err.message });
+  }
+});
+
+// ─── ROUTE 4.2: Update Booking (Reschedule / Cancel) ─────────────────────────
+app.put("/api/bookings/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, date, time, name, phone, service, stylist, price } = req.body;
+    const updateData = {};
+    if (status !== undefined) updateData.status = status;
+    if (date !== undefined) updateData.date = date;
+    if (time !== undefined) updateData.time = time;
+    if (name !== undefined) updateData.name = name;
+    if (phone !== undefined) updateData.phone = phone;
+    if (service !== undefined) updateData.service = service;
+    if (stylist !== undefined) updateData.stylist = stylist;
+    if (price !== undefined) updateData.price = price;
+
+    const updated = await booking.findByIdAndUpdate(id, updateData, { new: true });
+    if (!updated) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+    res.json({ success: true, booking: updated });
+  } catch (err) {
+    console.error("Update booking error:", err);
+    res.status(500).json({ error: "Failed to update booking", details: err.message });
+  }
+});
+
+// ─── ROUTE 4.3: Get All Bookings (Admin) ──────────────────────────────────────
+app.get("/api/bookings/all", async (req, res) => {
+  try {
+    const allBookings = await booking.find().sort({ createdAt: -1 });
+    
+    // Get local date string YYYY-MM-DD
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const todayStr = `${year}-${month}-${day}`;
+
+    // Filter out past bookings (keep only today's and future bookings)
+    const activeBookings = allBookings.filter((b) => {
+      if (!b.date) return false;
+      return b.date >= todayStr;
+    });
+
+    res.json(activeBookings);
+  } catch (err) {
+    console.error("Get all bookings error:", err);
+    res.status(500).json({ error: "Failed to fetch bookings", details: err.message });
+  }
+});
+
+// ─── ROUTE 4.4: Register User ────────────────────────────────────────────────
+app.post("/api/users", async (req, res) => {
+  try {
+    const { name, email, phone, password } = req.body;
+    if (!name || !email) {
+      return res.status(400).json({ error: "Name and email are required" });
+    }
+    const uEmail = email.toLowerCase();
+    let existingUser = await User.findOne({ email: uEmail });
+    if (existingUser) {
+      if (phone && (!existingUser.phone || existingUser.phone === "N/A")) {
+        existingUser.phone = phone;
+      }
+      if (name && existingUser.name !== name) {
+        existingUser.name = name;
+      }
+      await existingUser.save();
+      return res.json({ success: true, user: existingUser });
+    }
+    const newUser = await User.create({
+      name,
+      email: uEmail,
+      phone: phone || "N/A",
+      password,
+      createdAt: new Date()
+    });
+    res.status(201).json({ success: true, user: newUser });
+  } catch (err) {
+    console.error("Create user error:", err);
+    res.status(500).json({ error: "Failed to create user", details: err.message });
+  }
+});
+
+// ─── ROUTE 4.5: Get All Users (Admin) ────────────────────────────────────────
+app.get("/api/users", async (req, res) => {
+  try {
+    const users = await User.find().sort({ createdAt: -1 });
+    const bookings = await booking.find();
+    const countsMap = {};
+    bookings.forEach((b) => {
+      if (b.email) {
+        const emailKey = b.email.toLowerCase();
+        countsMap[emailKey] = (countsMap[emailKey] || 0) + 1;
+      }
+    });
+    const result = users.map((u) => ({
+      _id: u._id,
+      name: u.name,
+      email: u.email,
+      phone: u.phone || "N/A",
+      createdAt: u.createdAt,
+      totalBookings: countsMap[u.email.toLowerCase()] || 0
+    }));
+    res.json(result);
+  } catch (err) {
+    console.error("Get users error:", err);
+    res.status(500).json({ error: "Failed to fetch users", details: err.message });
   }
 });
 
@@ -889,10 +1043,34 @@ app.post("/api/retell-webhook", async (req, res) => {
         service,
         date: formattedDate,
         time: formattedTime,
+        status: "upcoming",
         source: "voice",
         oneHourReminderSent: false,
         fifteenMinReminderSent: false
       });
+
+      try {
+        const uEmail = email ? email.toLowerCase() : "";
+        if (uEmail) {
+          const existingUser = await User.findOne({ email: uEmail });
+          if (existingUser) {
+            let updated = false;
+            if (phone && (!existingUser.phone || existingUser.phone === "N/A")) {
+              existingUser.phone = phone;
+              updated = true;
+            }
+            if (name && existingUser.name === existingUser.email.split("@")[0]) {
+              existingUser.name = name;
+              updated = true;
+            }
+            if (updated) {
+              await existingUser.save();
+            }
+          }
+        }
+      } catch (uErr) {
+        console.error("Failed to update user in retell webhook:", uErr.message);
+      }
 
       console.log(`✅ MongoDB Booking created successfully! Document ID: ${newBooking._id}`);
       console.log(`📧 Attempting to trigger transactional email for voice booking to: ${email}...`);

@@ -45,7 +45,7 @@ export default function BookingPage({ navigate }) {
     try {
       const user = JSON.parse(localStorage.getItem("gg_user") || "{}");
       if (user.name) setSelected((p) => ({ ...p, name: user.name, phone: user.phone || "", email: user.email || "" }));
-    } catch (_) {}
+    } catch (_) { }
   }, []);
 
   const handleBook = async () => {
@@ -112,8 +112,8 @@ export default function BookingPage({ navigate }) {
           borderRadius: "8px", border: "none", fontWeight: "800", fontSize: "16px", cursor: "pointer",
           boxShadow: "0 8px 24px rgba(212,165,116,0.3)", transition: "all 0.3s",
         }}
-        onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 32px rgba(212,165,116,0.4)"; }}
-        onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(212,165,116,0.3)"; }}>
+          onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 32px rgba(212,165,116,0.4)"; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(212,165,116,0.3)"; }}>
           Back to Home
         </button>
       </div>
@@ -144,20 +144,20 @@ export default function BookingPage({ navigate }) {
                 fontSize: "14px",
                 fontWeight: "800",
                 transition: "all 0.3s",
-                background: step > i + 1 
-                  ? "rgba(212, 165, 116, 0.15)" 
-                  : step === i + 1 
-                    ? "linear-gradient(135deg, #D4A574 0%, #B8956A 100%)" 
+                background: step > i + 1
+                  ? "rgba(212, 165, 116, 0.15)"
+                  : step === i + 1
+                    ? "linear-gradient(135deg, #D4A574 0%, #B8956A 100%)"
                     : "#F5F0EA",
-                color: step > i + 1 
-                  ? "#B8956A" 
-                  : step === i + 1 
-                    ? "white" 
+                color: step > i + 1
+                  ? "#B8956A"
+                  : step === i + 1
+                    ? "white"
                     : "#9A9A9A",
-                border: step > i + 1 
-                  ? "2px solid #D4A574" 
-                  : step === i + 1 
-                    ? "none" 
+                border: step > i + 1
+                  ? "2px solid #D4A574"
+                  : step === i + 1
+                    ? "none"
                     : "1px solid #E8E0D8",
                 boxShadow: step === i + 1 ? "0 8px 20px rgba(212,165,116,0.35)" : "none",
               }}>
@@ -235,6 +235,24 @@ export default function BookingPage({ navigate }) {
                     min={today}
                     value={selected.date}
                     onChange={(e) => update("date", e.target.value)}
+                    onClick={(e) => {
+                      if (typeof e.target.showPicker === "function") {
+                        try {
+                          e.target.showPicker();
+                        } catch (err) {
+                          console.error("showPicker failed:", err);
+                        }
+                      }
+                    }}
+                    onFocus={(e) => {
+                      if (typeof e.target.showPicker === "function") {
+                        try {
+                          e.target.showPicker();
+                        } catch (err) {
+                          console.error("showPicker failed:", err);
+                        }
+                      }
+                    }}
                     style={{
                       position: "absolute",
                       inset: 0,

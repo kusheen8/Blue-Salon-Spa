@@ -1,10 +1,26 @@
 import { useState } from "react";
 
+const API = `${import.meta.env.VITE_API_URL}/api`;
+
 export default function SignupPage({ navigate, onLogin }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
 
   const handleSubmit = () => {
     if (!form.name || !form.email || !form.password) return;
+
+    fetch(`${API}/users`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        password: form.password
+      })
+    })
+    .catch(err => console.error("Error creating user in DB:", err));
+
+    localStorage.setItem("gg_user", JSON.stringify({ email: form.email, name: form.name, role: "user" }));
     onLogin(false);
   };
 

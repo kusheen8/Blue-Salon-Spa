@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const API = `${import.meta.env.VITE_API_URL}/api`;
+
 // ✅ Admin credentials — change these to whatever you want
 const ADMIN_EMAIL = "admin@goodnessglam.com";
 const ADMIN_PASSWORD = "admin123";
@@ -24,6 +26,16 @@ export default function LoginPage({ navigate, onLogin }) {
         onLogin(true); // admin = true
       } else if (form.password.length >= 6) {
         // Regular user login
+        fetch(`${API}/users`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: form.email,
+            name: form.email.split("@")[0]
+          })
+        })
+        .catch(err => console.error("Error storing user on login:", err));
+
         localStorage.setItem("gg_user", JSON.stringify({ email: form.email, role: "user" }));
         onLogin(false); // admin = false
       } else {

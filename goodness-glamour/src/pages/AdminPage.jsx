@@ -1,17 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const gold = "#B8956A";
 const dark = "#1C1C1C";
 const cream = "#FAF8F5";
 const border = "#E8E0D8";
 const gray = "#9A9A9A";
-
-const initBookings = [
-  { id: 1, client: "Priya S.", service: "Hair Coloring", stylist: "Bipin Kumar", date: "2026-05-10", time: "11:00 AM", status: "confirmed", phone: "9876543210" },
-  { id: 2, client: "Rohan M.", service: "Beard Grooming", stylist: "Nadim Ali", date: "2026-05-10", time: "1:00 PM", status: "pending", phone: "9123456789" },
-  { id: 3, client: "Akanksha B.", service: "Haircut", stylist: "Priya Sharma", date: "2026-05-11", time: "3:00 PM", status: "confirmed", phone: "9988776655" },
-  { id: 4, client: "Sanjay K.", service: "Facial", stylist: "Lakshmi R.", date: "2026-05-11", time: "5:00 PM", status: "cancelled", phone: "9876501234" },
-];
 
 const initServices = [
   { id: 1, name: "Haircut & Styling", price: 599, duration: "45 min", icon: "✂️", bookings: 48 },
@@ -35,14 +28,6 @@ const statusColor = {
   cancelled: { bg: "#FFEBEE", color: "#C62828", border: "#EF9A9A" },
 };
 
-const stats = [
-  { label: "Today's Bookings", value: "12", icon: "📅", change: "+3 from yesterday" },
-  { label: "Total Revenue", value: "₹18,420", icon: "💰", change: "+12% this week" },
-  { label: "Active Clients", value: "284", icon: "👥", change: "+8 new this month" },
-  { label: "Avg. Rating", value: "4.9 ⭐", icon: "🌟", change: "949 reviews" },
-];
-
-
 // ── Reusable Modal ─────────────────────────────────────────────────────────────
 function Modal({ title, onClose, onSave, children }) {
   return (
@@ -54,12 +39,7 @@ function Modal({ title, onClose, onSave, children }) {
           <button onClick={onClose} style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: gray, lineHeight: 1 }}>✕</button>
         </div>
         {/* Body */}
-        {/* Body */}
-<div style={{ 
-  padding: "24px", 
-  overflowY: "auto", 
-  maxHeight: "60vh" 
-}}>{children}</div>
+        <div style={{ padding: "24px", overflowY: "auto", maxHeight: "60vh" }}>{children}</div>
         {/* Footer */}
         <div style={{ padding: "16px 24px", borderTop: `1px solid ${border}`, display: "flex", justifyContent: "flex-end", gap: "12px" }}>
           <button onClick={onClose} style={{ padding: "10px 20px", borderRadius: "999px", border: `1px solid ${border}`, background: "white", color: "#4A4A4A", cursor: "pointer", fontSize: "14px", fontWeight: "500" }}>
@@ -76,6 +56,7 @@ function Modal({ title, onClose, onSave, children }) {
 
 // ── Reusable Input ─────────────────────────────────────────────────────────────
 function Field({ label, value, onChange, type = "text" }) {
+  const isDate = type === "date";
   return (
     <div style={{ marginBottom: "16px" }}>
       <label style={{ display: "block", fontSize: "13px", fontWeight: "500", color: "#4A4A4A", marginBottom: "6px" }}>{label}</label>
@@ -83,7 +64,25 @@ function Field({ label, value, onChange, type = "text" }) {
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        style={{ width: "100%", border: `1px solid ${border}`, borderRadius: "10px", padding: "10px 14px", fontSize: "14px", outline: "none", boxSizing: "border-box", color: dark }}
+        onClick={isDate ? (e) => {
+          if (typeof e.target.showPicker === "function") {
+            try {
+              e.target.showPicker();
+            } catch (err) {
+              console.error("showPicker failed:", err);
+            }
+          }
+        } : undefined}
+        onFocus={isDate ? (e) => {
+          if (typeof e.target.showPicker === "function") {
+            try {
+              e.target.showPicker();
+            } catch (err) {
+              console.error("showPicker failed:", err);
+            }
+          }
+        } : undefined}
+        style={{ width: "100%", border: `1px solid ${border}`, borderRadius: "10px", padding: "10px 14px", fontSize: "14px", outline: "none", boxSizing: "border-box", color: dark, cursor: isDate ? "pointer" : "text" }}
       />
     </div>
   );
@@ -94,35 +93,194 @@ export default function AdminPage({ navigate }) {
   const [activeTab, setActiveTab] = useState("bookings");
   const [filter, setFilter] = useState("all");
 
-  const [bookings, setBookings] = useState(initBookings);
-  const [services, setServices] = useState(initServices);
-  const [stylists, setStylists] = useState(initStylists);
+  const [bookings, setBookings] = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(true);
+  const [errorBookings, setErrorBookings] = useState("");
+
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [errorUsers, setErrorUsers] = useState("");
+
+  const [services, setServices] = useState(() => {
+    const local = localStorage.getItem("gg_services");
+    return local ? JSON.parse(local) : initServices;
+  });
+
+  const [stylists, setStylists] = useState(() => {
+    const local = localStorage.getItem("gg_stylists");
+    return local ? JSON.parse(local) : initStylists;
+  });
 
   // Modal state
-  const [modal, setModal] = useState(null); // null | { type, data }
+  const [modal, setModal] = useState(null); // null | { type, id, isAdd }
   const [draft, setDraft] = useState({});
+
+  const fetchBookings = async () => {
+    try {
+      setLoadingBookings(true);
+      const API = `${import.meta.env.VITE_API_URL}/api`;
+      const res = await fetch(`${API}/bookings/all`);
+      if (!res.ok) throw new Error("Failed to fetch bookings");
+      const data = await res.json();
+      
+      const mappedBookings = data.map((b) => ({
+        id: b._id,
+        client: b.name,
+        phone: b.phone,
+        service: b.service,
+        stylist: b.stylist || "Not Assigned",
+        date: b.date,
+        time: b.time,
+        status: b.status || "upcoming",
+        price: b.price
+      }));
+      setBookings(mappedBookings);
+      setErrorBookings("");
+    } catch (err) {
+      console.error(err);
+      setErrorBookings("Failed to load bookings from database.");
+    } finally {
+      setLoadingBookings(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      setLoadingUsers(true);
+      const API = `${import.meta.env.VITE_API_URL}/api`;
+      const res = await fetch(`${API}/users`);
+      if (!res.ok) throw new Error("Failed to fetch users");
+      const data = await res.json();
+      setUsers(data);
+      setErrorUsers("");
+    } catch (err) {
+      console.error(err);
+      setErrorUsers("Failed to load users from database.");
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookings();
+    fetchUsers();
+  }, []);
 
   const openEdit = (type, item) => {
     setDraft({ ...item });
-    setModal({ type, id: item.id });
+    setModal({ type, id: item.id, isAdd: false });
+  };
+
+  const openAdd = (type) => {
+    setDraft({});
+    setModal({ type, id: null, isAdd: true });
   };
 
   const closeModal = () => { setModal(null); setDraft({}); };
 
   const saveModal = () => {
     if (modal.type === "booking") {
-      setBookings((prev) => prev.map((b) => b.id === modal.id ? { ...b, ...draft } : b));
+      const updatedData = {
+        name: draft.client,
+        phone: draft.phone,
+        service: draft.service,
+        stylist: draft.stylist,
+        date: draft.date,
+        time: draft.time,
+        status: draft.status,
+        price: draft.price
+      };
+      
+      const API = `${import.meta.env.VITE_API_URL}/api`;
+      fetch(`${API}/bookings/${modal.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData)
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to update booking");
+        return res.json();
+      })
+      .then(() => {
+        fetchBookings();
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Failed to update booking");
+      });
     } else if (modal.type === "service") {
-      setServices((prev) => prev.map((s) => s.id === modal.id ? { ...s, ...draft } : s));
+      if (modal.isAdd) {
+        setServices((prev) => {
+          const newId = prev.length > 0 ? Math.max(...prev.map(s => s.id)) + 1 : 1;
+          const newList = [...prev, { ...draft, id: newId, bookings: 0 }];
+          localStorage.setItem("gg_services", JSON.stringify(newList));
+          return newList;
+        });
+      } else {
+        setServices((prev) => {
+          const newList = prev.map((s) => s.id === modal.id ? { ...s, ...draft } : s);
+          localStorage.setItem("gg_services", JSON.stringify(newList));
+          return newList;
+        });
+      }
     } else if (modal.type === "stylist") {
-      setStylists((prev) => prev.map((s) => s.id === modal.id ? { ...s, ...draft } : s));
+      if (modal.isAdd) {
+        setStylists((prev) => {
+          const newId = prev.length > 0 ? Math.max(...prev.map(s => s.id)) + 1 : 1;
+          const newList = [...prev, { ...draft, id: newId, clients: 0, rating: draft.rating || "5.0" }];
+          localStorage.setItem("gg_stylists", JSON.stringify(newList));
+          return newList;
+        });
+      } else {
+        setStylists((prev) => {
+          const newList = prev.map((s) => s.id === modal.id ? { ...s, ...draft } : s);
+          localStorage.setItem("gg_stylists", JSON.stringify(newList));
+          return newList;
+        });
+      }
     }
     closeModal();
+  };
+
+  const handleDeleteService = (id) => {
+    if (!window.confirm("Are you sure you want to delete this service?")) return;
+    setServices((prev) => {
+      const newList = prev.filter((s) => s.id !== id);
+      localStorage.setItem("gg_services", JSON.stringify(newList));
+      return newList;
+    });
+  };
+
+  const handleDeleteStylist = (id) => {
+    if (!window.confirm("Are you sure you want to delete this stylist?")) return;
+    setStylists((prev) => {
+      const newList = prev.filter((s) => s.id !== id);
+      localStorage.setItem("gg_stylists", JSON.stringify(newList));
+      return newList;
+    });
   };
 
   const updateDraft = (key, val) => setDraft((p) => ({ ...p, [key]: val }));
 
   const filtered = filter === "all" ? bookings : bookings.filter((b) => b.status === filter);
+
+  // Dynamic Stats calculations
+  const todayDate = new Date().toISOString().split("T")[0];
+  const todayBookingsCount = bookings.filter(b => b.date === todayDate).length;
+  
+  const totalRevenueVal = bookings
+    .filter(b => b.status !== "cancelled")
+    .reduce((sum, b) => {
+      const p = parseFloat(String(b.price).replace(/[^0-9.]/g, "")) || 0;
+      return sum + p;
+    }, 0);
+
+  const stats = [
+    { label: "Today's Bookings", value: todayBookingsCount.toString(), icon: "📅", change: "Live count" },
+    { label: "Total Revenue", value: `₹${totalRevenueVal.toLocaleString()}`, icon: "💰", change: "Non-cancelled bookings" },
+    { label: "Active Clients", value: users.length.toString(), icon: "👥", change: "Registered users" },
+    { label: "Avg. Rating", value: "4.9 ⭐", icon: "🌟", change: "Excellent reviews" },
+  ];
 
   return (
     <div style={{ paddingTop: "80px", minHeight: "100vh", background: cream }}>
@@ -151,7 +309,7 @@ export default function AdminPage({ navigate }) {
       )}
 
       {modal?.type === "service" && (
-        <Modal title="Edit Service" onClose={closeModal} onSave={saveModal}>
+        <Modal title={modal.isAdd ? "Add Service" : "Edit Service"} onClose={closeModal} onSave={saveModal}>
           <Field label="Service Name" value={draft.name || ""} onChange={(v) => updateDraft("name", v)} />
           <Field label="Price (₹)" value={draft.price || ""} onChange={(v) => updateDraft("price", v)} type="number" />
           <Field label="Duration" value={draft.duration || ""} onChange={(v) => updateDraft("duration", v)} />
@@ -160,7 +318,7 @@ export default function AdminPage({ navigate }) {
       )}
 
       {modal?.type === "stylist" && (
-        <Modal title="Edit Stylist" onClose={closeModal} onSave={saveModal}>
+        <Modal title={modal.isAdd ? "Add Stylist" : "Edit Stylist"} onClose={closeModal} onSave={saveModal}>
           <Field label="Full Name" value={draft.name || ""} onChange={(v) => updateDraft("name", v)} />
           <Field label="Role / Specialty" value={draft.role || ""} onChange={(v) => updateDraft("role", v)} />
           <Field label="Phone" value={draft.phone || ""} onChange={(v) => updateDraft("phone", v)} />
@@ -251,7 +409,7 @@ export default function AdminPage({ navigate }) {
 
         {/* Tabs */}
         <div style={{ display: "flex", gap: "0", borderBottom: `2px solid ${border}`, marginBottom: "32px" }}>
-          {["bookings", "services", "stylists"].map((t) => (
+          {["bookings", "services", "stylists", "users"].map((t) => (
             <button key={t} onClick={() => setActiveTab(t)} style={{
               padding: "14px 32px", background: "none", border: "none", fontSize: "15px", fontWeight: "800",
               cursor: "pointer", textTransform: "capitalize", letterSpacing: "1px",
@@ -291,33 +449,47 @@ export default function AdminPage({ navigate }) {
                   <span>Client</span><span>Service</span><span>Stylist</span><span>Date & Time</span><span>Status</span><span>Actions</span>
                 </div>
 
-                {filtered.map((b, i) => (
-                  <div key={b.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 1.2fr 1fr 1fr 0.8fr 0.8fr", padding: "16px 20px", alignItems: "center", borderTop: i === 0 ? "none" : `1px solid ${border}` }}>
-                  <div>
-                    <div style={{ fontWeight: "600", color: dark, fontSize: "14px" }}>{b.client}</div>
-                    <div style={{ fontSize: "12px", color: gray }}>📞 {b.phone}</div>
+                {loadingBookings ? (
+                  <div style={{ textAlign: "center", padding: "48px", color: gray, fontSize: "14px" }}>
+                    Loading bookings from database...
                   </div>
-                  <div style={{ fontSize: "14px", color: "#4A4A4A" }}>{b.service}</div>
-                  <div style={{ fontSize: "14px", color: "#4A4A4A" }}>{b.stylist}</div>
-                  <div>
-                    <div style={{ fontSize: "14px", color: "#4A4A4A" }}>{b.date}</div>
-                    <div style={{ fontSize: "12px", color: gray }}>{b.time}</div>
+                ) : errorBookings ? (
+                  <div style={{ textAlign: "center", padding: "48px", color: "#E53E3E", fontSize: "14px" }}>
+                    {errorBookings}
                   </div>
-                  <div>
-                    <span style={{ fontSize: "12px", padding: "4px 12px", borderRadius: "999px", fontWeight: "600", textTransform: "capitalize", background: statusColor[b.status]?.bg, color: statusColor[b.status]?.color, border: `1px solid ${statusColor[b.status]?.border}` }}>
-                      {b.status}
-                    </span>
+                ) : filtered.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "48px", color: gray, fontSize: "14px" }}>
+                    No bookings found.
                   </div>
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    <button
-                      onClick={() => openEdit("booking", b)}
-                      style={{ fontSize: "12px", padding: "6px 14px", borderRadius: "8px", border: `1px solid ${gold}`, background: "white", color: gold, cursor: "pointer", fontWeight: "600" }}
-                    >
-                      ✏️ Edit
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ) : (
+                  filtered.map((b, i) => (
+                    <div key={b.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 1.2fr 1fr 1fr 0.8fr 0.8fr", padding: "16px 20px", alignItems: "center", borderTop: i === 0 ? "none" : `1px solid ${border}` }}>
+                      <div>
+                        <div style={{ fontWeight: "600", color: dark, fontSize: "14px" }}>{b.client}</div>
+                        <div style={{ fontSize: "12px", color: gray }}>📞 {b.phone}</div>
+                      </div>
+                      <div style={{ fontSize: "14px", color: "#4A4A4A" }}>{b.service}</div>
+                      <div style={{ fontSize: "14px", color: "#4A4A4A" }}>{b.stylist}</div>
+                      <div>
+                        <div style={{ fontSize: "14px", color: "#4A4A4A" }}>{b.date}</div>
+                        <div style={{ fontSize: "12px", color: gray }}>{b.time}</div>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: "12px", padding: "4px 12px", borderRadius: "999px", fontWeight: "600", textTransform: "capitalize", background: statusColor[b.status]?.bg || "#FFF8E1", color: statusColor[b.status]?.color || "#F57F17", border: `1px solid ${statusColor[b.status]?.border || "#FFE082"}` }}>
+                          {b.status}
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button
+                          onClick={() => openEdit("booking", b)}
+                          style={{ fontSize: "12px", padding: "6px 14px", borderRadius: "8px", border: `1px solid ${gold}`, background: "white", color: gold, cursor: "pointer", fontWeight: "600" }}
+                        >
+                          ✏️ Edit
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -325,52 +497,126 @@ export default function AdminPage({ navigate }) {
 
         {/* ── SERVICES TAB ── */}
         {activeTab === "services" && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
-            {services.map((s) => (
-              <div key={s.id} style={{ background: "white", borderRadius: "16px", padding: "24px", border: `1px solid ${border}` }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
-                  <span style={{ fontSize: "32px" }}>{s.icon}</span>
-                  <button
-                    onClick={() => openEdit("service", s)}
-                    style={{ fontSize: "12px", padding: "6px 14px", borderRadius: "8px", border: `1px solid ${gold}`, background: "white", color: gold, cursor: "pointer", fontWeight: "600" }}
-                  >
-                    ✏️ Edit
-                  </button>
+          <div>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
+              <button
+                onClick={() => openAdd("service")}
+                style={{ padding: "10px 24px", borderRadius: "999px", border: "none", background: gold, color: "white", cursor: "pointer", fontSize: "14px", fontWeight: "600", boxShadow: "0 4px 12px rgba(212,165,116,0.2)" }}
+              >
+                + Add Service
+              </button>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+              {services.map((s) => (
+                <div key={s.id} style={{ background: "white", borderRadius: "16px", padding: "24px", border: `1px solid ${border}` }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
+                    <span style={{ fontSize: "32px" }}>{s.icon}</span>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        onClick={() => openEdit("service", s)}
+                        style={{ fontSize: "12px", padding: "6px 14px", borderRadius: "8px", border: `1px solid ${gold}`, background: "white", color: gold, cursor: "pointer", fontWeight: "600" }}
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteService(s.id)}
+                        style={{ fontSize: "12px", padding: "6px 14px", borderRadius: "8px", border: "1px solid #E53E3E", background: "white", color: "#E53E3E", cursor: "pointer", fontWeight: "600" }}
+                      >
+                        🗑️ Delete
+                      </button>
+                    </div>
+                  </div>
+                  <div style={{ fontWeight: "700", color: dark, fontSize: "16px", marginBottom: "4px" }}>{s.name}</div>
+                  <div style={{ fontSize: "13px", color: gray, marginBottom: "16px" }}>⏱ {s.duration}</div>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <div><div style={{ fontSize: "11px", color: gray }}>Price</div><div style={{ fontWeight: "700", color: gold, fontSize: "18px" }}>₹{s.price}</div></div>
+                    <div><div style={{ fontSize: "11px", color: gray }}>Bookings</div><div style={{ fontWeight: "700", color: dark, fontSize: "18px" }}>{s.bookings}</div></div>
+                  </div>
                 </div>
-                <div style={{ fontWeight: "700", color: dark, fontSize: "16px", marginBottom: "4px" }}>{s.name}</div>
-                <div style={{ fontSize: "13px", color: gray, marginBottom: "16px" }}>⏱ {s.duration}</div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <div><div style={{ fontSize: "11px", color: gray }}>Price</div><div style={{ fontWeight: "700", color: gold, fontSize: "18px" }}>₹{s.price}</div></div>
-                  <div><div style={{ fontSize: "11px", color: gray }}>Bookings</div><div style={{ fontWeight: "700", color: dark, fontSize: "18px" }}>{s.bookings}</div></div>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
         {/* ── STYLISTS TAB ── */}
         {activeTab === "stylists" && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px" }}>
-            {stylists.map((s) => (
-              <div key={s.id} style={{ background: "white", borderRadius: "16px", padding: "24px", border: `1px solid ${border}`, textAlign: "center" }}>
-                <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: `linear-gradient(135deg, ${gold}, #D4A882)`, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "800", fontSize: "24px", margin: "0 auto 16px" }}>
-                  {s.name[0]}
+          <div>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
+              <button
+                onClick={() => openAdd("stylist")}
+                style={{ padding: "10px 24px", borderRadius: "999px", border: "none", background: gold, color: "white", cursor: "pointer", fontSize: "14px", fontWeight: "600", boxShadow: "0 4px 12px rgba(212,165,116,0.2)" }}
+              >
+                + Add Stylist
+              </button>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px" }}>
+              {stylists.map((s) => (
+                <div key={s.id} style={{ background: "white", borderRadius: "16px", padding: "24px", border: `1px solid ${border}`, textAlign: "center" }}>
+                  <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: `linear-gradient(135deg, ${gold}, #D4A882)`, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "800", fontSize: "24px", margin: "0 auto 16px" }}>
+                    {s.name ? s.name[0] : "?"}
+                  </div>
+                  <div style={{ fontWeight: "700", color: dark, fontSize: "16px" }}>{s.name}</div>
+                  <div style={{ fontSize: "13px", color: gold, marginBottom: "4px" }}>{s.role}</div>
+                  <div style={{ fontSize: "12px", color: gray, marginBottom: "16px" }}>{s.email}</div>
+                  <div style={{ display: "flex", justifyContent: "center", gap: "24px", marginBottom: "16px" }}>
+                    <div><div style={{ fontSize: "11px", color: gray }}>Clients</div><div style={{ fontWeight: "700", color: dark }}>{s.clients}</div></div>
+                    <div><div style={{ fontSize: "11px", color: gray }}>Rating</div><div style={{ fontWeight: "700", color: dark }}>⭐ {s.rating}</div></div>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+                    <button
+                      onClick={() => openEdit("stylist", s)}
+                      style={{ flex: 1, fontSize: "13px", padding: "8px 0", borderRadius: "8px", border: `1px solid ${gold}`, background: "white", color: gold, cursor: "pointer", fontWeight: "600" }}
+                    >
+                      ✏️ Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteStylist(s.id)}
+                      style={{ flex: 1, fontSize: "13px", padding: "8px 0", borderRadius: "8px", border: "1px solid #E53E3E", background: "white", color: "#E53E3E", cursor: "pointer", fontWeight: "600" }}
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
                 </div>
-                <div style={{ fontWeight: "700", color: dark, fontSize: "16px" }}>{s.name}</div>
-                <div style={{ fontSize: "13px", color: gold, marginBottom: "4px" }}>{s.role}</div>
-                <div style={{ fontSize: "12px", color: gray, marginBottom: "16px" }}>{s.email}</div>
-                <div style={{ display: "flex", justifyContent: "center", gap: "24px", marginBottom: "16px" }}>
-                  <div><div style={{ fontSize: "11px", color: gray }}>Clients</div><div style={{ fontWeight: "700", color: dark }}>{s.clients}</div></div>
-                  <div><div style={{ fontSize: "11px", color: gray }}>Rating</div><div style={{ fontWeight: "700", color: dark }}>⭐ {s.rating}</div></div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── USERS TAB ── */}
+        {activeTab === "users" && (
+          <div>
+            <div style={{ background: "white", borderRadius: "16px", border: `1px solid ${border}`, overflow: "hidden" }} className="w-full overflow-x-auto">
+              <div style={{ minWidth: "900px" }}>
+                {/* Table head */}
+                <div style={{ display: "grid", gridTemplateColumns: "1.5fr 2fr 1.5fr 1.5fr 1fr", padding: "12px 20px", background: "#F5F0EA", fontSize: "11px", fontWeight: "700", color: gray, textTransform: "uppercase", letterSpacing: "1px" }}>
+                  <span>Full Name</span><span>Email Address</span><span>Phone Number</span><span>Registration Date</span><span>Total Bookings</span>
                 </div>
-                <button
-                  onClick={() => openEdit("stylist", s)}
-                  style={{ width: "100%", fontSize: "13px", padding: "8px 0", borderRadius: "8px", border: `1px solid ${gold}`, background: "white", color: gold, cursor: "pointer", fontWeight: "600" }}
-                >
-                  ✏️ Edit Stylist
-                </button>
+
+                {loadingUsers ? (
+                  <div style={{ textAlign: "center", padding: "48px", color: gray, fontSize: "14px" }}>
+                    Loading users from database...
+                  </div>
+                ) : errorUsers ? (
+                  <div style={{ textAlign: "center", padding: "48px", color: "#E53E3E", fontSize: "14px" }}>
+                    {errorUsers}
+                  </div>
+                ) : users.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "48px", color: gray, fontSize: "14px" }}>
+                    No registered users found.
+                  </div>
+                ) : (
+                  users.map((u, i) => (
+                    <div key={u._id || u.email} style={{ display: "grid", gridTemplateColumns: "1.5fr 2fr 1.5fr 1.5fr 1fr", padding: "16px 20px", alignItems: "center", borderTop: i === 0 ? "none" : `1px solid ${border}` }}>
+                      <div style={{ fontWeight: "600", color: dark, fontSize: "14px" }}>{u.name}</div>
+                      <div style={{ fontSize: "14px", color: "#4A4A4A" }}>{u.email}</div>
+                      <div style={{ fontSize: "14px", color: "#4A4A4A" }}>{u.phone}</div>
+                      <div style={{ fontSize: "14px", color: "#4A4A4A" }}>{u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-IN") : "N/A"}</div>
+                      <div style={{ fontWeight: "700", color: gold, fontSize: "14px" }}>{u.totalBookings}</div>
+                    </div>
+                  ))
+                )}
               </div>
-            ))}
+            </div>
           </div>
         )}
       </div>

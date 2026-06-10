@@ -72,13 +72,13 @@ blue-spa-salon/
 
 ## ⚙️ Environment Configuration
 
-### Frontend (`goodness-glamour/.env`)
+### Frontend (`/.env`)
 ```env
 VITE_API_URL=http://localhost:4000
 VITE_HF_API_KEY=your_huggingface_inference_key
 ```
 
-### Backend (`goodness-glamour-backend/.env`)
+### Backend (`/.env`)
 ```env
 PORT=4000
 MONGO_URI=your_mongodb_connection_string

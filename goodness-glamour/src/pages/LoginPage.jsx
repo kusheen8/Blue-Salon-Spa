@@ -139,24 +139,6 @@ export default function LoginPage({ navigate, onLogin, authMessage }) {
               ) : "Sign In"}
             </button>
           </div>
-
-          {/* Divider */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "24px 0" }}>
-            <div style={{ flex: 1, height: "1px", background: "#E8E0D8" }} />
-            <span style={{ fontSize: "12px", color: "#9A9A9A", fontWeight: "600" }}>OR</span>
-            <div style={{ flex: 1, height: "1px", background: "#E8E0D8" }} />
-          </div>
-
-          {/* Google Sign In */}
-          <button style={{
-            width: "100%", border: "1px solid #E8E0D8", padding: "12px", borderRadius: "10px",
-            fontSize: "14px", fontWeight: "700", color: "#4A4A4A", background: "white",
-            cursor: "pointer", transition: "all 0.2s",
-          }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "#D4A574"; e.currentTarget.style.background = "#FAF8F5"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "#E8E0D8"; e.currentTarget.style.background = "white"; }}>
-            🔍 Continue with Google
-          </button>
         </div>
 
         {/* Sign Up Link */}

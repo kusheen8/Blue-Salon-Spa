@@ -21,7 +21,42 @@ import booking from "./Models/booking.js";
 import User from "./Models/user.js";
 import fs from "fs";
 import connectDB from "./config/db.js";
-connectDB();
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { verifyToken, authorizeRoles } from "./middleware/auth.js";
+
+connectDB().then(() => {
+  seedAdminUser();
+});
+
+async function seedAdminUser() {
+  try {
+    const adminEmail = "kusheendhar@gmail.com";
+    const existingAdmin = await User.findOne({ email: adminEmail });
+    if (!existingAdmin) {
+      const hashedPassword = await bcrypt.hash("Admin@123blue", 10);
+      await User.create({
+        fullName: "Administrator",
+        email: adminEmail,
+        password: hashedPassword,
+        role: "admin",
+        salonName: "Blue Spa & Salon",
+        isActive: true,
+        createdAt: new Date()
+      });
+      console.log("👥 Default Admin user seeded successfully!");
+    } else {
+      // Force update of role and password to guarantee it matches admin requirements
+      existingAdmin.role = "admin";
+      existingAdmin.password = await bcrypt.hash("Admin@123blue", 10);
+      await existingAdmin.save();
+      console.log("👥 Default Admin user updated to role: admin with seeded password successfully!");
+    }
+  } catch (err) {
+    console.error("❌ Seeding admin user error:", err.message);
+  }
+}
+
 const app = express();
 const corsOptions = {
   origin: [
@@ -68,7 +103,7 @@ async function sendEmail({ to, subject, html }) {
   try {
     console.log(`📨 Attempting to send transactional email to ${to} via Brevo...`);
     await brevo.transactionalEmails.sendTransacEmail({
-      sender: { name: "Goodness Glamour", email: "2akonsultant@gmail.com" },
+      sender: { name: "Blue Spa & Salon", email: "2akonsultant@gmail.com" },
       to: [{ email: to }],
       subject,
       htmlContent: html,
@@ -78,7 +113,7 @@ async function sendEmail({ to, subject, html }) {
     console.warn(`⚠️ Brevo failed (${brevoError.message}). Initiating Gmail SMTP failover...`);
     try {
       const info = await mailer.sendMail({
-        from: `"Goodness Glamour" <${process.env.GMAIL_USER}>`,
+        from: `"Blue Spa & Salon" <${process.env.GMAIL_USER}>`,
         to,
         subject,
         html,
@@ -173,7 +208,7 @@ const otpStore = {};
 /*async function sendEmail({ to, subject, html }) {
 
   const info = await mailer.sendMail({
-    from: `"Goodness Glamour" <${process.env.GMAIL_USER}>`,
+    from: `"Blue Spa & Salon" <${process.env.GMAIL_USER}>`,
     to,
     subject,
     html,
@@ -212,15 +247,15 @@ app.post("/api/send-otp", async (req, res) => {
   otpStore[phone] = { otp, expiresAt: Date.now() + 10 * 60 * 1000 };
 
   try {
-    await sendSMS({ to: phone, body: `Your Goodness Glamour verification code is: ${otp}. Valid for 10 minutes.` });
+    await sendSMS({ to: phone, body: `Your Blue Spa & Salon verification code is: ${otp}. Valid for 10 minutes.` });
     console.log("🚀 Attempting to send booking email...");
     await sendEmail({
       to: email,
-      subject: "Your Goodness Glamour Verification Code",
+      subject: "Your Blue Spa & Salon Verification Code",
       html: `
         <div style="font-family:Georgia,serif;max-width:500px;margin:auto;padding:40px;background:#FAF8F5;border-radius:16px;">
-          <h1 style="color:#1C1C1C;font-size:28px;margin-bottom:4px;">Goodness <span style="color:#B8956A;">Glamour</span></h1>
-          <p style="color:#9A9A9A;font-size:12px;letter-spacing:3px;text-transform:uppercase;margin-top:0;">Premium Salon</p>
+          <h1 style="color:#1C1C1C;font-size:28px;margin-bottom:4px;">Blue <span style="color:#2563EB;">Spa & Salon</span></h1>
+          <p style="color:#9A9A9A;font-size:12px;letter-spacing:3px;text-transform:uppercase;margin-top:0;">Where beauty meets care 💙</p>
           <hr style="border:none;border-top:1px solid #E8E0D8;margin:24px 0;">
           <p style="color:#4A4A4A;">Hi <strong>${name}</strong>, welcome!</p>
           <p style="color:#4A4A4A;">Your verification code is:</p>
@@ -231,7 +266,7 @@ app.post("/api/send-otp", async (req, res) => {
         </div>
       `,
     });
-    await sendWhatsApp({ to: phone, body: `👋 Hi ${name}! Your Goodness Glamour verification code is: *${otp}*\n\nValid for 10 minutes.` });
+    await sendWhatsApp({ to: phone, body: `👋 Hi ${name}! Your Blue Spa & Salon verification code is: *${otp}*\n\nValid for 10 minutes.` });
     res.json({ success: true, message: "OTP sent via SMS, Email & WhatsApp" });
     console.log("✅ Booking email sent!");
   } catch (err) {
@@ -256,8 +291,14 @@ app.post("/api/verify-otp", (req, res) => {
 });
 
 // ─── ROUTE 3: Booking Confirmation ───────────────────────────────────────────
-app.post("/api/booking-confirm", async (req, res) => {
+app.post("/api/booking-confirm", verifyToken, async (req, res) => {
   const { name, email, phone, service, date, time, stylist, price } = req.body;
+
+  // RBAC check: User can only create booking for themselves, unless admin
+  if (req.user.role !== "admin" && req.user.email.toLowerCase() !== email.toLowerCase()) {
+    return res.status(403).json({ error: "Access denied. You can only book appointments for your own account." });
+  }
+
   await booking.create({ name, email, phone, service, date, time, stylist, price, status: "upcoming", oneHourReminderSent: false, fifteenMinReminderSent: false, source: "manual" });
 
   try {
@@ -291,19 +332,19 @@ app.post("/api/booking-confirm", async (req, res) => {
     try {
       await sendEmail({
         to: email,
-        subject: `✅ Booking Confirmed — ${service} at Goodness Glamour`,
+        subject: `✅ Booking Confirmed — ${service} at Blue Spa & Salon`,
         html: `
-        <div style="font-family:Georgia,serif;max-width:500px;margin:auto;padding:40px;background:#FAF8F5;border-radius:16px;border:1px solid rgba(212,165,116,0.15);">
+        <div style="font-family:Georgia,serif;max-width:500px;margin:auto;padding:40px;background:#FAF8F5;border-radius:16px;border:1px solid rgba(37,99,235,0.15);">
   <h1 style="color:#1C1C1C;font-size:28px;margin-bottom:4px;text-align:center;font-weight:normal;font-family:'Playfair Display',serif;">
-    Goodness <span style="color:#B8956A;">Glamour</span>
+    Blue <span style="color:#2563EB;">Spa & Salon</span>
   </h1>
 
   <p style="color:#9A9A9A;font-size:11px;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-top:0;margin-bottom:24px;">
-    Premium Salon
+    Where beauty meets care 💙
   </p>
 
-  <div style="background:#1C1C1C;border-radius:12px;padding:20px;text-align:center;margin-bottom:28px;">
-    <p style="color:#D4A574;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:0 0 6px 0;font-weight:600;">
+  <div style="background:#1D4ED8;border-radius:12px;padding:20px;text-align:center;margin-bottom:28px;">
+    <p style="color:#DBEAFE;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:0 0 6px 0;font-weight:600;">
       Booking Confirmed
     </p>
 
@@ -372,20 +413,20 @@ app.post("/api/booking-confirm", async (req, res) => {
       <td style="padding:10px 0;color:#9A9A9A;font-size:13px;border-bottom:1px solid #E8E0D8;">
         Total
       </td>
-      <td style="padding:10px 0;color:#D4A574;font-weight:700;font-size:13px;border-bottom:1px solid #E8E0D8;text-align:right;">
+      <td style="padding:10px 0;color:#2563EB;font-weight:700;font-size:13px;border-bottom:1px solid #E8E0D8;text-align:right;">
         ₹${price}
       </td>
     </tr>
   </table>
 
-  <div style="background:rgba(212,165,116,0.06);border-radius:10px;padding:15px;text-align:center;margin-bottom:28px;border:1px dashed rgba(212,165,116,0.3);">
+  <div style="background:rgba(37,99,235,0.06);border-radius:10px;padding:15px;text-align:center;margin-bottom:28px;border:1px dashed rgba(37,99,235,0.3);">
     <p style="color:#7A7A7A;font-size:12px;margin:0;line-height:1.5;">
-      📍 Bengaluru, Karnataka • 📞 063645 54220<br>
+      📍 Raichandani Square, Golden Mile Rd, Kokapet, Hyderabad, Telangana 500075, India • 📞 +91 81215 00912<br>
       We look forward to giving you an exceptional experience!
     </p>
   </div>
 
-  <p style="color:#B8956A;font-weight:600;text-align:center;font-size:16px;margin:0;">
+  <p style="color:#2563EB;font-weight:600;text-align:center;font-size:16px;margin:0;">
     See you very soon! 💇‍♀️
   </p>
 </div>
@@ -429,17 +470,17 @@ app.post("/api/booking-confirm", async (req, res) => {
 // ─── ROUTE 4: Thank You ───────────────────────────────────────────────────────
 app.post("/api/thank-you", async (req, res) => {
   const { name, email, phone } = req.body;
-  const msg = `💖 Thank you ${name} for visiting Goodness Glamour!\n\nPlease leave us a review! 🌟`;
+  const msg = `💖 Thank you ${name} for visiting Blue Spa & Salon!\n\nPlease leave us a review! 🌟`;
   try {
     await sendEmail({
       to: email,
-      subject: "Thank you for visiting Goodness Glamour 💖",
+      subject: "Thank you for visiting Blue Spa & Salon 💖",
       html: `
         <div style="font-family:Georgia,serif;max-width:500px;margin:auto;padding:40px;background:#FAF8F5;border-radius:16px;text-align:center;">
-          <h1 style="color:#1C1C1C;font-size:28px;">Goodness <span style="color:#B8956A;">Glamour</span></h1>
+          <h1 style="color:#1C1C1C;font-size:28px;">Blue <span style="color:#2563EB;">Spa & Salon</span></h1>
           <hr style="border:none;border-top:1px solid #E8E0D8;margin:24px 0;">
           <p style="color:#4A4A4A;font-size:16px;">Hi <strong>${name}</strong>, thank you for your visit! 💖</p>
-          <a href="https://g.page/r/YOUR_GOOGLE_REVIEW_LINK" style="display:inline-block;background:#B8956A;color:white;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:600;margin:20px 0;">⭐ Leave a Review</a>
+          <a href="https://g.page/r/YOUR_GOOGLE_REVIEW_LINK" style="display:inline-block;background:#2563EB;color:white;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:600;margin:20px 0;">⭐ Leave a Review</a>
         </div>
       `,
     });
@@ -453,11 +494,15 @@ app.post("/api/thank-you", async (req, res) => {
 });
 
 // ─── ROUTE 4.1: Get Bookings ─────────────────────────────────────────────────
-app.get("/api/bookings", async (req, res) => {
+app.get("/api/bookings", verifyToken, async (req, res) => {
   try {
     const { email } = req.query;
     if (!email) {
       return res.status(200).json([]);
+    }
+    // RBAC check: Only owner or admin can view history
+    if (req.user.role !== "admin" && req.user.email.toLowerCase() !== email.toLowerCase()) {
+      return res.status(403).json({ error: "Access denied. You do not have permission to view these bookings." });
     }
     const bookingsList = await booking.find({ email }).sort({ createdAt: -1 });
     if (!bookingsList) {
@@ -471,9 +516,20 @@ app.get("/api/bookings", async (req, res) => {
 });
 
 // ─── ROUTE 4.2: Update Booking (Reschedule / Cancel) ─────────────────────────
-app.put("/api/bookings/:id", async (req, res) => {
+app.put("/api/bookings/:id", verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
+
+    const bookingDoc = await booking.findById(id);
+    if (!bookingDoc) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+
+    // RBAC check: Only owner or admin can modify bookings
+    if (req.user.role !== "admin" && req.user.email.toLowerCase() !== bookingDoc.email.toLowerCase()) {
+      return res.status(403).json({ error: "Access denied. You do not have permission to manage this booking." });
+    }
+
     const { status, date, time, name, phone, service, stylist, price } = req.body;
     const updateData = {};
     if (status !== undefined) updateData.status = status;
@@ -486,9 +542,6 @@ app.put("/api/bookings/:id", async (req, res) => {
     if (price !== undefined) updateData.price = price;
 
     const updated = await booking.findByIdAndUpdate(id, updateData, { new: true });
-    if (!updated) {
-      return res.status(404).json({ error: "Booking not found" });
-    }
     res.json({ success: true, booking: updated });
   } catch (err) {
     console.error("Update booking error:", err);
@@ -497,10 +550,10 @@ app.put("/api/bookings/:id", async (req, res) => {
 });
 
 // ─── ROUTE 4.3: Get All Bookings (Admin) ──────────────────────────────────────
-app.get("/api/bookings/all", async (req, res) => {
+app.get("/api/bookings/all", verifyToken, authorizeRoles("admin"), async (req, res) => {
   try {
     const allBookings = await booking.find().sort({ createdAt: -1 });
-    
+
     // Get local date string YYYY-MM-DD
     const d = new Date();
     const year = d.getFullYear();
@@ -524,38 +577,138 @@ app.get("/api/bookings/all", async (req, res) => {
 // ─── ROUTE 4.4: Register User ────────────────────────────────────────────────
 app.post("/api/users", async (req, res) => {
   try {
-    const { name, email, phone, password } = req.body;
-    if (!name || !email) {
-      return res.status(400).json({ error: "Name and email are required" });
+    const { name, fullName, email, phone, password } = req.body;
+    const finalName = fullName || name;
+    if (!finalName || !email || !password) {
+      return res.status(400).json({ error: "Full Name, email, and password are required." });
     }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Invalid email format." });
+    }
+
     const uEmail = email.toLowerCase();
-    let existingUser = await User.findOne({ email: uEmail });
+
+    // Check duplicate email
+    const existingUser = await User.findOne({ email: uEmail });
     if (existingUser) {
-      if (phone && (!existingUser.phone || existingUser.phone === "N/A")) {
-        existingUser.phone = phone;
-      }
-      if (name && existingUser.name !== name) {
-        existingUser.name = name;
-      }
-      await existingUser.save();
-      return res.json({ success: true, user: existingUser });
+      return res.status(400).json({ error: "An account with this email already exists." });
     }
+
+    // Validate password rules (min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character)
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        error: "Password must be at least 8 characters long, contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character."
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
     const newUser = await User.create({
-      name,
+      fullName: finalName,
       email: uEmail,
       phone: phone || "N/A",
-      password,
+      password: hashedPassword,
+      role: "user",
+      salonName: "Blue Spa & Salon",
+      isActive: true,
       createdAt: new Date()
     });
-    res.status(201).json({ success: true, user: newUser });
+
+    // Sign JWT token
+    const JWT_SECRET = process.env.JWT_SECRET || "gg_super_secret_jwt_key_123!@#";
+    const token = jwt.sign(
+      { id: newUser._id, email: newUser.email, role: newUser.role, fullName: newUser.fullName },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    res.status(201).json({
+      success: true,
+      token,
+      message: "Account created successfully!",
+      user: {
+        id: newUser._id,
+        fullName: newUser.fullName,
+        email: newUser.email,
+        role: newUser.role,
+        salonName: newUser.salonName
+      }
+    });
   } catch (err) {
-    console.error("Create user error:", err);
-    res.status(500).json({ error: "Failed to create user", details: err.message });
+    console.error("User registration error:", err);
+    res.status(500).json({ error: "Failed to register user", details: err.message });
   }
 });
 
+// ─── ROUTE 4.4.1: Login User ──────────────────────────────────────────────────
+app.post("/api/users/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required." });
+    }
+
+    const uEmail = email.toLowerCase();
+    const user = await User.findOne({ email: uEmail });
+    if (!user) {
+      return res.status(401).json({ error: "Invalid email or password." });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ error: "Account is disabled. Please contact support." });
+    }
+
+    // Verify password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid email or password." });
+    }
+
+    // Update lastLogin timestamp
+    user.lastLogin = new Date();
+    await user.save();
+
+    // Sign JWT token
+    const JWT_SECRET = process.env.JWT_SECRET || "gg_super_secret_jwt_key_123!@#";
+    const token = jwt.sign(
+      { id: user._id, email: user.email, role: user.role, fullName: user.fullName },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        salonName: user.salonName
+      }
+    });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ error: "Failed to log in", details: err.message });
+  }
+});
+
+// ─── ROUTE 4.4.2: Get User Profile ───────────────────────────────────────────
+app.get("/api/users/me", verifyToken, (req, res) => {
+  res.json({
+    success: true,
+    user: req.user
+  });
+});
+
 // ─── ROUTE 4.5: Get All Users (Admin) ────────────────────────────────────────
-app.get("/api/users", async (req, res) => {
+app.get("/api/users", verifyToken, authorizeRoles("admin"), async (req, res) => {
   try {
     const users = await User.find().sort({ createdAt: -1 });
     const bookings = await booking.find();
@@ -568,7 +721,7 @@ app.get("/api/users", async (req, res) => {
     });
     const result = users.map((u) => ({
       _id: u._id,
-      name: u.name,
+      name: u.fullName,
       email: u.email,
       phone: u.phone || "N/A",
       createdAt: u.createdAt,
@@ -598,7 +751,7 @@ app.post("/api/hair-ai", async (req, res) => {
           messages: [
             {
               role: "system",
-              content: "You are a luxury salon AI assistant for Goodness Glamour Salon. Help users with hairstyles, haircuts, hair coloring, treatments, hair care routines, salon suggestions and styling tips. Keep replies friendly, elegant, short to medium length with emojis. Redirect unrelated questions back to hair topics.",
+              content: "You are a luxury salon AI assistant for Blue Spa & Salon. Help users with hairstyles, haircuts, hair coloring, treatments, hair care routines, salon suggestions and styling tips. Keep replies friendly, elegant, short to medium length with emojis. Redirect unrelated questions back to hair topics.",
             },
             { role: "user", content: prompt },
           ],
@@ -672,16 +825,16 @@ cron.schedule("* * * * *", async () => {
             to: booking.email,
             subject: "⏰ Reminder: Your appointment is in 1 hour!",
             html: `
-        <div style="font-family:Georgia,serif;max-width:500px;margin:auto;padding:40px;background:#FAF8F5;border-radius:16px;border:1px solid rgba(212,165,116,0.15);">
+        <div style="font-family:Georgia,serif;max-width:500px;margin:auto;padding:40px;background:#FAF8F5;border-radius:16px;border:1px solid rgba(37,99,235,0.15);">
           <h1 style="color:#1C1C1C;font-size:28px;margin-bottom:4px;text-align:center;font-weight:normal;font-family:'Playfair Display',serif;">
-            Goodness <span style="color:#B8956A;">Glamour</span>
+            Blue <span style="color:#2563EB;">Spa & Salon</span>
           </h1>
           <p style="color:#9A9A9A;font-size:11px;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-top:0;margin-bottom:24px;">
-            Premium Salon
+            Where beauty meets care 💙
           </p>
 
-          <div style="background:#1C1C1C;border-radius:12px;padding:20px;text-align:center;margin-bottom:28px;">
-            <p style="color:#D4A574;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:0 0 6px 0;font-weight:600;">Upcoming Appointment</p>
+          <div style="background:#1D4ED8;border-radius:12px;padding:20px;text-align:center;margin-bottom:28px;">
+            <p style="color:#DBEAFE;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:0 0 6px 0;font-weight:600;">Upcoming Appointment</p>
             <h2 style="color:white;font-size:22px;margin:0;font-weight:normal;">In 1 Hour ⏰</h2>
           </div>
 
@@ -707,13 +860,13 @@ cron.schedule("* * * * *", async () => {
             </tr>
           </table>
 
-          <div style="background:rgba(212,165,116,0.06);border-radius:10px;padding:15px;text-align:center;margin-bottom:28px;border:1px dashed rgba(212,165,116,0.3);">
+          <div style="background:rgba(37,99,235,0.06);border-radius:10px;padding:15px;text-align:center;margin-bottom:28px;border:1px dashed rgba(37,99,235,0.3);">
             <p style="color:#7A7A7A;font-size:12px;margin:0;line-height:1.5;">
-              📍 Bengaluru, Karnataka • 📞 063645 54220<br>
+              📍 Raichandani Square, Golden Mile Rd, Kokapet, Hyderabad, Telangana 500075, India • 📞 +91 81215 00912<br>
               Please arrive 5 minutes prior to ensure a perfect session.
             </p>
           </div>
-          <div style="background:rgba(212,165,116,0.08);border-radius:12px;padding:16px;text-align:center;margin-bottom:24px;border:1px solid rgba(212,165,116,0.25);">
+          <div style="background:rgba(37,99,235,0.08);border-radius:12px;padding:16px;text-align:center;margin-bottom:24px;border:1px solid rgba(37,99,235,0.25);">
   <p style="margin:0;color:#6B6B6B;font-size:13px;line-height:1.6;">
     📅 ${booking.date}<br>
     ⏰ ${booking.time}<br><br>
@@ -721,7 +874,7 @@ cron.schedule("* * * * *", async () => {
   </p>
 </div>
 
-          <p style="color:#B8956A;font-weight:600;text-align:center;font-size:16px;margin:0;">
+          <p style="color:#2563EB;font-weight:600;text-align:center;font-size:16px;margin:0;">
             See you very soon! 💇‍♀️
           </p>
         </div>
@@ -755,16 +908,16 @@ cron.schedule("* * * * *", async () => {
             to: booking.email,
             subject: "⏰ Reminder: Your appointment is in 15 minutes!",
             html: `
-        <div style="font-family:Georgia,serif;max-width:500px;margin:auto;padding:40px;background:#FAF8F5;border-radius:16px;border:1px solid rgba(212,165,116,0.15);">
+        <div style="font-family:Georgia,serif;max-width:500px;margin:auto;padding:40px;background:#FAF8F5;border-radius:16px;border:1px solid rgba(37,99,235,0.15);">
           <h1 style="color:#1C1C1C;font-size:28px;margin-bottom:4px;text-align:center;font-weight:normal;font-family:'Playfair Display',serif;">
-            Goodness <span style="color:#B8956A;">Glamour</span>
+            Blue <span style="color:#2563EB;">Spa & Salon</span>
           </h1>
           <p style="color:#9A9A9A;font-size:11px;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-top:0;margin-bottom:24px;">
-            Premium Salon
+            Where beauty meets care 💙
           </p>
 
-          <div style="background:#1C1C1C;border-radius:12px;padding:20px;text-align:center;margin-bottom:28px;">
-            <p style="color:#D4A574;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:0 0 6px 0;font-weight:600;">Upcoming Appointment</p>
+          <div style="background:#1D4ED8;border-radius:12px;padding:20px;text-align:center;margin-bottom:28px;">
+            <p style="color:#DBEAFE;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:0 0 6px 0;font-weight:600;">Upcoming Appointment</p>
             <h2 style="color:white;font-size:22px;margin:0;font-weight:normal;">In 15 Mins ⏰</h2>
           </div>
 
@@ -790,13 +943,13 @@ cron.schedule("* * * * *", async () => {
             </tr>
           </table>
 
-          <div style="background:rgba(212,165,116,0.06);border-radius:10px;padding:15px;text-align:center;margin-bottom:28px;border:1px dashed rgba(212,165,116,0.3);">
+          <div style="background:rgba(37,99,235,0.06);border-radius:10px;padding:15px;text-align:center;margin-bottom:28px;border:1px dashed rgba(37,99,235,0.3);">
             <p style="color:#7A7A7A;font-size:12px;margin:0;line-height:1.5;">
-              📍 Bengaluru, Karnataka • 📞 063645 54220<br>
+              📍 Raichandani Square, Golden Mile Rd, Kokapet, Hyderabad, Telangana 500075, India • 📞 +91 81215 00912<br>
               We look forward to giving you an exceptional experience!
             </p>
           </div>
-          <div style="background:rgba(212,165,116,0.08);border-radius:12px;padding:16px;text-align:center;margin-bottom:24px;border:1px solid rgba(212,165,116,0.25);">
+          <div style="background:rgba(37,99,235,0.08);border-radius:12px;padding:16px;text-align:center;margin-bottom:24px;border:1px solid rgba(37,99,235,0.25);">
   <p style="margin:0;color:#6B6B6B;font-size:13px;line-height:1.6;">
     📅 ${booking.date}<br>
     ⏰ ${booking.time}<br><br>
@@ -804,7 +957,7 @@ cron.schedule("* * * * *", async () => {
   </p>
 </div>
 
-          <p style="color:#B8956A;font-weight:600;text-align:center;font-size:16px;margin:0;">
+          <p style="color:#2563EB;font-weight:600;text-align:center;font-size:16px;margin:0;">
             See you very soon! 💇‍♀️
           </p>
         </div>
@@ -1080,7 +1233,7 @@ app.post("/api/retell-webhook", async (req, res) => {
         to: email,
 
         subject:
-          "✨ Goodness Glamour Appointment Confirmation",
+          "✨ Blue Spa & Salon Appointment Confirmation",
         /*
         html: `
           <div style="font-family:sans-serif;padding:20px;">
@@ -1103,22 +1256,22 @@ app.post("/api/retell-webhook", async (req, res) => {
 
             <p>
               We look forward to seeing you at
-              Goodness Glamour 💇‍♀️
+              Blue Spa & Salon 💇‍♀️
             </p>
 
           </div>
         `*/
         html: `
-          <div style="font-family:Georgia,serif;max-width:500px;margin:auto;padding:40px;background:#FAF8F5;border-radius:16px;border:1px solid rgba(212,165,116,0.15);">
+          <div style="font-family:Georgia,serif;max-width:500px;margin:auto;padding:40px;background:#FAF8F5;border-radius:16px;border:1px solid rgba(37,99,235,0.15);">
             <h1 style="color:#1C1C1C;font-size:28px;margin-bottom:4px;text-align:center;font-weight:normal;font-family:'Playfair Display',serif;">
-              Goodness <span style="color:#B8956A;">Glamour</span>
+              Blue <span style="color:#2563EB;">Spa & Salon</span>
             </h1>
             <p style="color:#9A9A9A;font-size:11px;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-top:0;margin-bottom:24px;">
-              Premium Salon
+              Where beauty meets care 💙
             </p>
 
-            <div style="background:#1C1C1C;border-radius:12px;padding:20px;text-align:center;margin-bottom:28px;">
-              <p style="color:#D4A574;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:0 0 6px 0;font-weight:600;">Voice Booking Confirmed</p>
+            <div style="background:#1D4ED8;border-radius:12px;padding:20px;text-align:center;margin-bottom:28px;">
+              <p style="color:#DBEAFE;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:0 0 6px 0;font-weight:600;">Voice Booking Confirmed</p>
               <h2 style="color:white;font-size:20px;margin:0;font-weight:normal;">Appointment Confirmed 🎉</h2>
             </div>
 
@@ -1148,18 +1301,18 @@ app.post("/api/retell-webhook", async (req, res) => {
               </tr>
               <tr>
                 <td style="padding:10px 0;color:#9A9A9A;font-size:13px;border-bottom:1px solid #E8E0D8;">Booking Source</td>
-                <td style="padding:10px 0;color:#D4A574;font-weight:700;font-size:13px;border-bottom:1px solid #E8E0D8;text-align:right;text-transform:uppercase;letter-spacing:0.5px;">Priya (AI Voice)</td>
+                <td style="padding:10px 0;color:#2563EB;font-weight:700;font-size:13px;border-bottom:1px solid #E8E0D8;text-align:right;text-transform:uppercase;letter-spacing:0.5px;">Priya (AI Voice)</td>
               </tr>
             </table>
 
-            <div style="background:rgba(212,165,116,0.06);border-radius:10px;padding:15px;text-align:center;margin-bottom:28px;border:1px dashed rgba(212,165,116,0.3);">
+            <div style="background:rgba(37,99,235,0.06);border-radius:10px;padding:15px;text-align:center;margin-bottom:28px;border:1px dashed rgba(37,99,235,0.3);">
               <p style="color:#7A7A7A;font-size:12px;margin:0;line-height:1.5;">
-                📍 Bengaluru, Karnataka • 📞 063645 54220<br>
+                📍 Raichandani Square, Golden Mile Rd, Kokapet, Hyderabad, Telangana 500075, India • 📞 +91 81215 00912<br>
                 We look forward to giving you an exceptional experience!
               </p>
             </div>
 
-            <p style="color:#B8956A;font-weight:600;text-align:center;font-size:16px;margin:0;">
+            <p style="color:#2563EB;font-weight:600;text-align:center;font-size:16px;margin:0;">
               See you very soon! 💇‍♀️
             </p>
           </div>
@@ -1188,7 +1341,7 @@ app.post("/api/retell-webhook", async (req, res) => {
 const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`✅ Goodness Glamour server running on port ${PORT}`);
+  console.log(`✅ Blue Spa & Salon server running on port ${PORT}`);
   console.log(`📧 Gmail: ${process.env.GMAIL_USER || "❌ NOT SET"}`);
   console.log(`🔑 Pass: ${process.env.GMAIL_APP_PASS ? "✅ SET" : "❌ NOT SET"}`);
   console.log(`🤖 Groq Key: ${process.env.GROQ_API_KEY ? "✅ SET" : "❌ NOT SET"}`);

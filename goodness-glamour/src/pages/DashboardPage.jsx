@@ -24,7 +24,14 @@ export default function DashboardPage({ navigate }) {
     try {
       setLoading(true);
       const API = `${import.meta.env.VITE_API_URL}/api`;
-      const res = await fetch(`${API}/bookings?email=${encodeURIComponent(userEmail)}`);
+      const token = localStorage.getItem("gg_token");
+      
+      const res = await fetch(`${API}/bookings?email=${encodeURIComponent(userEmail)}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
       if (!res.ok) throw new Error("Failed to fetch appointments");
       const data = await res.json();
       setAppointments(data);
@@ -45,9 +52,14 @@ export default function DashboardPage({ navigate }) {
     if (!window.confirm("Are you sure you want to cancel this appointment?")) return;
     try {
       const API = `${import.meta.env.VITE_API_URL}/api`;
+      const token = localStorage.getItem("gg_token");
+      
       const res = await fetch(`${API}/bookings/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ status: "cancelled" }),
       });
       if (!res.ok) throw new Error("Failed to cancel appointment");
@@ -66,9 +78,14 @@ export default function DashboardPage({ navigate }) {
 
     try {
       const API = `${import.meta.env.VITE_API_URL}/api`;
+      const token = localStorage.getItem("gg_token");
+      
       const res = await fetch(`${API}/bookings/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ date: newDate, time: newTime, status: "upcoming" }),
       });
       if (!res.ok) throw new Error("Failed to reschedule appointment");
@@ -97,7 +114,12 @@ export default function DashboardPage({ navigate }) {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
           <div>
             <span style={{ fontSize: "12px", letterSpacing: "4px", textTransform: "uppercase", color: "#D4A574", fontWeight: "800", display: "block", marginBottom: "8px" }}>Welcome back</span>
-            <h1 style={{ fontSize: "36px", fontWeight: "900", color: "#1C1C1C", margin: "0", letterSpacing: "-0.5px", fontFamily: "'Playfair Display', serif" }}>My Dashboard</h1>
+            <h1 style={{ fontSize: "36px", fontWeight: "900", color: "#1C1C1C", margin: "0 0 4px 0", letterSpacing: "-0.5px", fontFamily: "'Playfair Display', serif" }}>
+              {user?.fullName || "My Dashboard"}
+            </h1>
+            <p style={{ margin: "0", fontSize: "14px", color: "#9A9A9A", fontWeight: "500" }}>
+              📧 {userEmail} | 🏢 {user?.salonName || "Blue Spa & Salon"}
+            </p>
           </div>
           <button onClick={() => navigate("booking")} style={{
             background: "linear-gradient(135deg, #D4A574, #B8956A)", color: "white", padding: "14px 32px",
@@ -113,7 +135,7 @@ export default function DashboardPage({ navigate }) {
         {/* Stats Cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px", marginBottom: "48px" }}>
           {[
-            { label: "Total Appointments", value: appointments.length.toString(), icon: "🗓️", color: "#D4A574" },
+            { label: "Total Appointments", value: filtered.length.toString(), icon: "🗓️", color: "#D4A574" },
             { label: "Total Spent", value: `₹${totalSpent.toLocaleString()}`, icon: "💸", color: "#E8B4A0" },
             { label: "Loyalty Points", value: loyaltyPoints.toString(), icon: "⭐", color: "#C49970" },
           ].map((s) => (

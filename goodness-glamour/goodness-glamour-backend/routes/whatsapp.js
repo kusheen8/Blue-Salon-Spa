@@ -20,7 +20,7 @@ router.post('/incoming', async (req, res) => {
   const twiml = new MessagingResponse();
 
   if (needsHumanHandoff(Body)) {
-    twiml.message(`Hey ${ProfileName || 'lovely'}! 💛 Our team will be with you shortly. You can also call us at ${SALON_KNOWLEDGE.phone}. We promise we're worth the wait! ✨`);
+    twiml.message(`Hey ${ProfileName || 'lovely'}! 💙 Our team will be with you shortly. You can also call us at ${SALON_KNOWLEDGE.phone}. We promise we're worth the wait! ✨`);
     res.type('text/xml');
     return res.send(twiml.toString());
   }
@@ -29,7 +29,7 @@ router.post('/incoming', async (req, res) => {
     const result = await getAIResponse(sessionId, Body, 'whatsapp');
     twiml.message(result.message);
   } catch (err) {
-    twiml.message(`So sorry for the interruption! Please call us at ${SALON_KNOWLEDGE.phone} and we'll be happy to help. 💛`);
+    twiml.message(`So sorry for the interruption! Please call us at ${SALON_KNOWLEDGE.phone} and we'll be happy to help. 💙`);
   }
 
   res.type('text/xml');
@@ -57,7 +57,7 @@ router.post('/send', async (req, res, next) => {
 router.post('/reminder', async (req, res, next) => {
   try {
     const { to, clientName, service, dateTime, stylist } = req.body;
-    const reminderMsg = `💛 Hi ${clientName}! This is a gentle reminder from ${SALON_KNOWLEDGE.name}.
+    const reminderMsg = `💙 Hi ${clientName}! This is a gentle reminder from ${SALON_KNOWLEDGE.name}.
 
 ✨ Your appointment is confirmed:
 📋 Service: ${service}
@@ -87,9 +87,9 @@ router.post('/review-request', async (req, res, next) => {
 We hope you're absolutely loving your ${service}! 💇‍♀️
 
 We'd be so grateful if you'd share your experience with us. It only takes a moment and means the world to our team:
-⭐ Leave a review: ${process.env.REVIEW_URL || 'https://goodnessglamour.com/review'}
-
-Thank you for choosing us, beautiful! See you next time. 💛`;
+⭐ Leave a review: ${process.env.REVIEW_URL || 'https://bluespasalon.com/review'}
+ 
+Thank you for choosing us, beautiful! See you next time. 💙`;
 
     const msg = await client.messages.create({
       from: `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER}`,

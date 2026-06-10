@@ -1,54 +1,64 @@
 import { useState } from "react";
 import GeminiChatSidebar from "../components/GeminiChatSidebar";
 import VirtualAssistantCard from "../components/VirtualAssistantCard";
+
+// Import new images
+import spaTherapyRoom from "../assets/spa_therapy_room.jpg";
+import salonEntrance from "../assets/salon_entrance.jpg";
+import receptionDesk from "../assets/reception_desk.jpg";
+import stylingArea from "../assets/styling_area.jpg";
+import hairWashBasin from "../assets/hair_wash_basin.jpg";
+import receptionWaitingArea from "../assets/reception_waiting_area.jpg";
+import singleSpaRoom from "../assets/single_spa_room.jpg";
+
 const services = [
   {
     icon: "✂️",
     title: "Haircuts & Styling",
     desc: "Precision cuts tailored to your face shape and lifestyle",
     price: "From ₹599",
-    img: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&q=80",
+    img: stylingArea,
   },
   {
     icon: "🎨",
     title: "Hair Coloring",
     desc: "Global balayage, highlights & vivid color techniques",
     price: "From ₹1,499",
-    img: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&q=80",
+    img: hairWashBasin,
   },
   {
     icon: "💆",
     title: "Hair Treatments",
     desc: "Keratin, smoothing & deep conditioning therapies",
     price: "From ₹999",
-    img: "https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=600&q=80",
+    img: spaTherapyRoom,
   },
   {
     icon: "🪒",
     title: "Grooming & Shave",
     desc: "Classic hot towel shaves & beard sculpting",
     price: "From ₹399",
-    img: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&q=80",
+    img: receptionDesk,
   },
   {
     icon: "✨",
     title: "Skin Services",
     desc: "Facials, clean-ups & advanced skin treatments",
     price: "From ₹799",
-    img: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&q=80",
+    img: singleSpaRoom,
   },
   {
     icon: "💅",
     title: "Nail Art",
     desc: "Manicure, pedicure & artistic nail designs",
     price: "From ₹499",
-    img: "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&q=80",
+    img: salonEntrance,
   },
 ];
 
 const reviews = [
   { name: "Priya S.", rating: 5, text: "Absolutely loved my hair transformation! The stylists are incredibly skilled and the ambiance is so relaxing.", time: "2 weeks ago" },
-  { name: "Rohan M.", rating: 5, text: "Best grooming experience in Bengaluru. Bipin is a legend — knew exactly what I wanted.", time: "1 month ago" },
+  { name: "Rohan M.", rating: 5, text: "Best grooming experience in Hyderabad. Bipin is a legend — knew exactly what I wanted.", time: "1 month ago" },
   { name: "Akanksha B.", rating: 5, text: "Visited for a haircut and came out feeling like a new person. 10/10 would recommend!", time: "3 weeks ago" },
 ];
 
@@ -65,7 +75,7 @@ const offers = [
     title: "40% OFF on All Services",
     subtitle: "Mon – Thurs | 10 AM to 2 PM",
     cta: "Book Now",
-    img: "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=1200&q=80",
+    img: spaTherapyRoom,
     accent: "#B8956A",
   },
   {
@@ -73,18 +83,18 @@ const offers = [
     title: "Haircut at ₹799",
     subtitle: "Includes wash, conditioning, serum & blow dry",
     cta: "Grab Offer",
-    img: "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=1200&q=80",
+    img: stylingArea,
     accent: "#FFD700",
   },
 ];
 
 const galleryImages = [
-  { src: "https://img.freepik.com/premium-photo/beautiful-girl-beauty-salon-hairstyle-makeup_1015980-566928.jpg", label: "Color & Balayage" },
-  { src: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&q=80", label: "Precision Cut" },
-  { src: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&q=80", label: "Skin Glow Facial" },
-  { src: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&q=80", label: "Beard Grooming" },
-  { src: "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&q=80", label: "Nail Art" },
-  { src: "https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=600&q=80", label: "Hair Treatment" },
+  { src: hairWashBasin, label: "Color & Balayage" },
+  { src: stylingArea, label: "Precision Cut" },
+  { src: singleSpaRoom, label: "Skin Glow Facial" },
+  { src: receptionDesk, label: "Beard Grooming" },
+  { src: salonEntrance, label: "Nail Art" },
+  { src: spaTherapyRoom, label: "Hair Treatment" },
 ];
 
 export default function HomePage({ navigate }) {
@@ -92,16 +102,16 @@ export default function HomePage({ navigate }) {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [hoveredGallery, setHoveredGallery] = useState(null);
 
-  // Goodness Glamour Salons Database
+  // Blue Spa & Salon Database
   const salons = [
-  {
-    name: "Goodness Glamour",
-    address: "Whitefield, Bengaluru",
-    lat: 12.9897, // replace with exact coordinates
-    lon: 77.7611, // replace with exact coordinates
-    phone: "+91 63645 54220"
-  }
-];
+    {
+      name: "Blue Spa & Salon",
+      address: "Raichandani Square, Golden Mile Rd, Kokapet, Hyderabad, Telangana 500075, India",
+      lat: 17.3941,
+      lon: 78.3242,
+      phone: "+91 81215 00912"
+    }
+  ];
 
   const [selectedSalon, setSelectedSalon] = useState(salons[0]);
   const [isLocating, setIsLocating] = useState(false);
@@ -201,7 +211,7 @@ export default function HomePage({ navigate }) {
       }}>
         {/* Background image with improved overlay */}
         <img
-          src="https://static.wixstatic.com/media/fa47b7_005bcd54fdad4454ab5cb8e78ef44de9~mv2.png/v1/fill/w_980,h_980,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/fa47b7_005bcd54fdad4454ab5cb8e78ef44de9~mv2.png"
+          src={receptionWaitingArea}
           alt="Salon hero"
           style={{
             position: "absolute", inset: 0,
@@ -230,17 +240,17 @@ export default function HomePage({ navigate }) {
               padding: "10px 18px", borderRadius: "999px", marginBottom: "28px",
               fontWeight: "600",
             }}>
-              ✨ Premium Salon • Bengaluru
+              ✨ Premium Salon • Hyderabad
             </span>
             <h1 style={{
               fontSize: "clamp(36px, 7vw, 76px)", fontWeight: "900",
               color: "white", lineHeight: "1.08", margin: "0 0 28px 0",
               letterSpacing: "-1.5px",
             }}>
-              Redefine<br /><span style={{ color: "#D4A574", backgroundImage: "linear-gradient(135deg, #D4A574, #B8956A)", backgroundClip: "text", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Your</span><br />Glamour.
+              Redefine<br /><span style={{ color: "#D4A574", backgroundImage: "linear-gradient(135deg, #D4A574, #B8956A)", backgroundClip: "text", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Your</span><br />Beauty.
             </h1>
             <p style={{ color: "#D0C8C0", fontSize: "16px", md: "18px", lineHeight: "1.8", marginBottom: "40px", maxWidth: "480px", fontWeight: "300" }} className="text-sm md:text-lg">
-              Luxury beauty services crafted by certified specialists. Premium hair styling, expert treatments, and transformative experiences designed just for you.
+              Professional styling, skincare & rejuvenation all in one place.
             </p>
             <div style={{ display: "flex", gap: "14px", flexWrap: "wrap" }}>
               <button onClick={() => navigate("booking")} style={{
@@ -333,10 +343,10 @@ export default function HomePage({ navigate }) {
             {/* Part 1 */}
             <div style={{ display: "inline-flex", gap: "60px", paddingRight: "60px" }}>
               {Array(4).fill([
-                "GOODNESS GLAMOUR",
+                "BLUE SPA & SALON",
                 "PREMIUM SALON EXPERIENCE",
                 "HAIR & SKIN BEAUTY",
-                "REDEFINE YOUR GLAMOUR"
+                "WHERE BEAUTY MEETS CARE"
               ]).flat().map((text, idx) => (
                 <span key={idx} style={{
                   fontSize: "13px",
@@ -354,10 +364,10 @@ export default function HomePage({ navigate }) {
             {/* Part 2 (Seamless loop replica) */}
             <div style={{ display: "inline-flex", gap: "60px", paddingRight: "60px" }}>
               {Array(4).fill([
-                "GOODNESS GLAMOUR",
+                "BLUE SPA & SALON",
                 "PREMIUM SALON EXPERIENCE",
                 "HAIR & SKIN BEAUTY",
-                "REDEFINE YOUR GLAMOUR"
+                "WHERE BEAUTY MEETS CARE"
               ]).flat().map((text, idx) => (
                 <span key={`dup-${idx}`} style={{
                   fontSize: "13px",
@@ -646,8 +656,8 @@ export default function HomePage({ navigate }) {
                 <div style={{
                   position: "absolute", inset: 0,
                   background: hoveredGallery === i
-                     ? "linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.15))"
-                     : "linear-gradient(to top, rgba(0,0,0,0.5), transparent)",
+                    ? "linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.15))"
+                    : "linear-gradient(to top, rgba(0,0,0,0.5), transparent)",
                   transition: "background 0.3s",
                 }} />
                 <div style={{
@@ -759,7 +769,7 @@ export default function HomePage({ navigate }) {
               📍 Salon Locator
             </div>
             <h3 style={{ fontSize: "28px", fontWeight: "900", color: "white", margin: "0 0 24px 0", letterSpacing: "-0.5px" }} className="font-display">
-              Find Nearest Goodness Glamour Salon
+              Find Nearest Blue Spa & Salon
             </h3>
 
             {/* Styled Map Card with Glassmorphic design */}
@@ -774,13 +784,13 @@ export default function HomePage({ navigate }) {
             >
               {/* Map Iframe */}
               <iframe
-                title="Goodness Glamour Salon Map"
+                title="Blue Spa & Salon Map"
                 width="100%"
                 height="220"
                 style={{ border: 0, borderRadius: "16px", marginBottom: "20px", background: "#1a1a1a" }}
                 loading="lazy"
                 allowFullScreen
-                src="https://maps.google.com/maps?q=Goodness%20Glamour%20Whitefield%20Bangalore&z=15&output=embed"
+                src="https://maps.google.com/maps?q=Raichandani%20Square%20Kokapet%20Hyderabad&z=15&output=embed"
               ></iframe>
 
               {/* Active Salon details */}
@@ -876,11 +886,11 @@ export default function HomePage({ navigate }) {
                       }}></span>
                       Finding Nearest...
                     </>
-                  ) : "📍 Locate Goodness Glamour"}
+                  ) : "📍 Locate Blue Spa & Salon"}
                 </button>
 
                 <a
-                  href="https://maps.app.goo.gl/xUrxGaKKfJ5koJSZ9"
+                  href="https://www.google.com/maps/dir/?api=1&destination=Raichandani+Square+Golden+Mile+Rd+Kokapet+Hyderabad+Telangana+500075"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
@@ -912,28 +922,63 @@ export default function HomePage({ navigate }) {
 
             {/* Brand Logo & Description */}
             <div>
-              <div style={{ fontSize: "28px", fontWeight: "900", letterSpacing: "-0.5px" }}>Goodness</div>
-              <div style={{ fontSize: "13px", letterSpacing: "5px", textTransform: "uppercase", color: "#D4A574", marginBottom: "20px", fontWeight: "800" }}>Glamour</div>
+              <div style={{ display: "flex", flexDirection: "row", alignItems: "baseline", gap: "8px", marginBottom: "8px" }}>
+                <span style={{ fontSize: "32px", fontWeight: "800", letterSpacing: "-0.5px", color: "white", fontFamily: "'Playfair Display', serif" }}>
+                  Blue Spa
+                </span>
+                <span style={{ fontSize: "32px", fontWeight: "300", color: "#D4A574", fontFamily: "'Playfair Display', serif", fontStyle: "italic" }}>
+                  & Salon
+                </span>
+              </div>
+              <p style={{ color: "#D4A574", fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", fontWeight: "700", marginTop: "2px", marginBottom: "16px" }}>
+                Where beauty meets care 💙
+              </p>
               <p style={{ color: "#B8B0A8", fontSize: "15px", lineHeight: "1.8", margin: 0 }}>
-                Premium beauty and grooming services by certified professionals. Style, care, and confidence — tailored just for you.
+                Professional styling, skincare & rejuvenation all in one place.
               </p>
             </div>
 
             {/* Get in Touch Info */}
             <div>
-              <h4 style={{ fontSize: "13px", letterSpacing: "3px", textTransform: "uppercase", color: "#D4A574", marginBottom: "20px", fontWeight: "800" }}>Get in Touch</h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: "14px", color: "#B8B0A8", fontSize: "15px" }}>
-                <a href="tel:09036626642" style={{ color: "#D4A574", textDecoration: "none", fontWeight: "600", transition: "all 0.2s" }}
-                  onMouseEnter={e => { e.currentTarget.style.opacity = "0.8"; }}
-                  onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}>
-                  📞 +91 9036 626 642
+              <h4 style={{ fontSize: "13px", letterSpacing: "3px", textTransform: "uppercase", color: "#D4A574", marginBottom: "22px", fontWeight: "800" }}>Get in Touch</h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px", color: "#B8B0A8", fontSize: "14px" }}>
+                
+                {/* Phone */}
+                <a href="tel:+918121500912" style={{ display: "flex", alignItems: "center", gap: "12px", color: "#B8B0A8", textDecoration: "none", transition: "all 0.2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.color = "#D4A574"; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = "#B8B0A8"; }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "32px", height: "32px", borderRadius: "50%", background: "rgba(212,165,116,0.1)", color: "#D4A574" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.47 11.47 0 003.58.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.58a1 1 0 01-.24 1.01l-2.21 2.2z"/></svg>
+                  </div>
+                  <span style={{ fontWeight: "600" }}>+91 81215 00912</span>
                 </a>
-                <a href="mailto:2akonsultant@gmail.com" style={{ color: "#D4A574", textDecoration: "none", fontWeight: "600", transition: "all 0.2s", wordBreak: "break-all" }}
-                  onMouseEnter={e => { e.currentTarget.style.opacity = "0.8"; }}
-                  onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}>
-                  ✉️ 2akonsultant@gmail.com
+
+                {/* Email */}
+                <a href="mailto:bluespasaloon@gmail.com" style={{ display: "flex", alignItems: "center", gap: "12px", color: "#B8B0A8", textDecoration: "none", transition: "all 0.2s", wordBreak: "break-all" }}
+                  onMouseEnter={e => { e.currentTarget.style.color = "#D4A574"; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = "#B8B0A8"; }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "32px", height: "32px", borderRadius: "50%", background: "rgba(212,165,116,0.1)", color: "#D4A574" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                  </div>
+                  <span style={{ fontWeight: "600" }}>bluespasaloon@gmail.com</span>
                 </a>
-                <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>📍 Bengaluru, Karnataka</span>
+
+                {/* Address */}
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", lineHeight: "1.5" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "32px", height: "32px", borderRadius: "50%", background: "rgba(212,165,116,0.1)", color: "#D4A574", flexShrink: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                  </div>
+                  <span>Shop No. 302, 3rd Floor, Raichandani Square, Golden Mile Rd, Kokapet, Hyderabad, Telangana 500075, India</span>
+                </div>
+
+                {/* Hours */}
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "32px", height: "32px", borderRadius: "50%", background: "rgba(212,165,116,0.1)", color: "#D4A574" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                  </div>
+                  <span>Daily: 10:00 AM - 9:00 PM</span>
+                </div>
+
               </div>
             </div>
 
@@ -944,7 +989,7 @@ export default function HomePage({ navigate }) {
         {/* Divider */}
         <div className="max-w-[1400px] mx-auto border-t border-white/10 pt-10 flex flex-col sm:flex-row justify-between items-center gap-5 text-center sm:text-left">
           <div style={{ color: "#7A7A7A", fontSize: "14px" }}>
-            © 2026 Goodness Glamour. All rights reserved.
+            © 2026 Blue Spa & Salon. All rights reserved.
           </div>
           <div style={{ display: "flex", gap: "20px", color: "#7A7A7A", fontSize: "14px" }}>
             <button style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", transition: "all 0.2s" }}
@@ -963,7 +1008,7 @@ export default function HomePage({ navigate }) {
 
       {/* ── Floating Call button — bottom left ── */}
       <div
-        onClick={() => window.open("tel:09036626642")}
+        onClick={() => window.open("tel:+918121500912")}
         title="Call us"
         style={{
           position: "fixed", bottom: "28px", left: "24px", zIndex: 999,
@@ -983,7 +1028,7 @@ export default function HomePage({ navigate }) {
       </div>
       {/* ── Floating WhatsApp button — bottom right ── */}
       <div
-        onClick={() => window.open("https://wa.me/919036626642", "_blank")}
+        onClick={() => window.open("https://wa.me/918121500912", "_blank")}
         title="WhatsApp us"
         style={{
           position: "fixed", bottom: "28px", right: "24px", zIndex: 999,
@@ -1003,7 +1048,7 @@ export default function HomePage({ navigate }) {
         </svg>
       </div>
 
-      <GeminiChatSidebar />
+      <GeminiChatSidebar navigate={navigate} />
       <VirtualAssistantCard popupOnly={true} />
     </div>
   );

@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 const HF_MODEL = "mistralai/Mistral-7B-Instruct-v0.2";
 const API_KEY = import.meta.env.VITE_HF_API_KEY;
 
-const SYSTEM_PROMPT = `You are a luxury salon AI assistant for Goodness Glamour Salon.
+const SYSTEM_PROMPT = `You are a luxury salon AI assistant for Blue Spa & Salon.
 You help users with hairstyles, haircuts, hair coloring, hair treatments, hair care routines, salon suggestions, and styling tips.
 Keep replies friendly, elegant, professional, short to medium length, and use emojis naturally.
 If unrelated questions are asked, politely redirect to salon and hair topics.`;
@@ -15,7 +15,7 @@ const SUGGESTIONS = [
   "Keratin vs smoothening 💆‍♀️",
 ];
 
-export default function GeminiChatSidebar() {
+export default function GeminiChatSidebar({ navigate }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
   const openChat = () => {
@@ -31,7 +31,7 @@ export default function GeminiChatSidebar() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text: "Hello beautiful ✨ I'm your Goodness Glamour Hair Assistant. Ask me about hairstyles, treatments, hair colors, or salon care 💇‍♀️",
+      text: "Hello beautiful ✨ I'm your Blue Spa & Salon Hair Assistant. Ask me about hairstyles, treatments, hair colors, or salon care 💇‍♀️",
     },
   ]);
   const [input, setInput] = useState("");
@@ -77,30 +77,43 @@ const sendMessage = async (customText) => {
     setLoading(true);
 
     try {
+      const token = localStorage.getItem("gg_token");
+      const isAuthenticated = !!token;
      
-  
-  const formData = new FormData();
+      const formData = new FormData();
+      formData.append("message", text);
+      formData.append("sessionId", "website-user");
+      formData.append("isAuthenticated", isAuthenticated ? "true" : "false");
 
-formData.append("message", text);
-formData.append("sessionId", "website-user");
+      if (selectedImage?.file) {
+        formData.append("image", selectedImage.file);
+      }
+      console.log("VITE_API_URL =", import.meta.env.VITE_API_URL);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/chat`, {
+        method: "POST",
+        body: formData,
+      });
 
-if (selectedImage?.file) {
-  formData.append("image", selectedImage.file);
-}
-console.log("VITE_API_URL =", import.meta.env.VITE_API_URL);
-const response = await fetch(
-  `${import.meta.env.VITE_API_URL}/api/chat`, {
-  method: "POST",
-  body: formData,
-});
+      const data = await response.json();
+      console.log(data);
 
-const data = await response.json();
-console.log(data);
-// if (data.error) throw new Error(data.error);
+      if (data.action === "AUTH_REQUIRED" || data.action === "BOOKING_REDIRECT") {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            text: data.message,
+            buttons: data.buttons
+          }
+        ]);
+        setSelectedImage(null);
+        return;
+      }
 
-if (data.error) throw new Error(data.error);
+      if (data.error) throw new Error(data.error);
 
-let reply = data.reply || "✨ Sorry, I couldn't respond right now.";
+      let reply = data.reply || "✨ Sorry, I couldn't respond right now.";
 
       // Clean up any leftover prompt artifacts
       reply = reply.replace(/\[INST\]|\[\/INST\]|<<SYS>>|<\/SYS>>|<s>|<\/s>/g, "").trim();
@@ -179,7 +192,7 @@ let reply = data.reply || "✨ Sorry, I couldn't respond right now.";
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 1 }}>
             <div>
               <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "900", letterSpacing: "-0.5px", fontFamily: "'Playfair Display', serif" }}>✨ Hair AI</h2>
-              <p style={{ margin: "6px 0 0", fontSize: "12px", opacity: 0.95, fontWeight: "600", textTransform: "uppercase", letterSpacing: "1px" }}>Goodness Glamour</p>
+              <p style={{ margin: "6px 0 0", fontSize: "12px", opacity: 0.95, fontWeight: "600", textTransform: "uppercase", letterSpacing: "1px" }}>Blue Spa & Salon</p>
             </div>
             <button
               onClick={() => setOpen(false)}
@@ -244,6 +257,43 @@ let reply = data.reply || "✨ Sorry, I couldn't respond right now.";
                     />
                   )}
                   {msg.text}
+                  {msg.buttons && msg.buttons.length > 0 && (
+                    <div style={{ display: "flex", gap: "10px", marginTop: "12px", flexWrap: "wrap" }}>
+                      {msg.buttons.map((btn, bIdx) => (
+                        <button
+                          key={bIdx}
+                          onClick={() => {
+                            if (btn.action === "SIGNUP") {
+                              if (navigate) navigate("signup");
+                              setOpen(false);
+                            } else if (btn.action === "LOGIN") {
+                              if (navigate) navigate("login");
+                              setOpen(false);
+                            } else if (btn.action === "BOOK_APPOINTMENT") {
+                              if (navigate) navigate("booking");
+                              setOpen(false);
+                            }
+                          }}
+                          style={{
+                            background: "linear-gradient(135deg, #D4A574, #B8956A)",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "8px",
+                            padding: "8px 16px",
+                            fontSize: "12px",
+                            fontWeight: "700",
+                            cursor: "pointer",
+                            boxShadow: "0 4px 10px rgba(184,149,106,0.2)",
+                            transition: "all 0.2s"
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; }}
+                          onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; }}
+                        >
+                          {btn.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </>
               </div>
             </div>

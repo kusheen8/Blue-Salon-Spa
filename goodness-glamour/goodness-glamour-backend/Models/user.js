@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-  name: {
+  fullName: {
     type: String,
     required: true
   },
@@ -14,12 +14,27 @@ const userSchema = new mongoose.Schema({
     type: String
   },
   password: {
-    type: String
+    type: String,
+    required: true
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  role: {
+    type: String,
+    enum: ["user", "admin"],
+    default: "user"
+  },
+  salonName: {
+    type: String,
+    default: "Blue Spa & Salon"
+  },
+  lastLogin: {
+    type: Date
+  },
+  isActive: {
+    type: Boolean,
+    default: true
   }
+}, {
+  timestamps: true
 });
 
 const User = mongoose.model("User", userSchema);

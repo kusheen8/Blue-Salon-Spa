@@ -44,7 +44,14 @@ export default function BookingPage({ navigate }) {
   useState(() => {
     try {
       const user = JSON.parse(localStorage.getItem("gg_user") || "{}");
-      if (user.name) setSelected((p) => ({ ...p, name: user.name, phone: user.phone || "", email: user.email || "" }));
+      if (user.fullName || user.email) {
+        setSelected((p) => ({
+          ...p,
+          name: user.fullName || "",
+          phone: user.phone || "",
+          email: user.email || ""
+        }));
+      }
     } catch (_) { }
   }, []);
 
@@ -55,9 +62,13 @@ export default function BookingPage({ navigate }) {
     }
     setSending(true);
     try {
+      const token = localStorage.getItem("gg_token");
       const res = await fetch(`${API}/booking-confirm`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({
           name: selected.name,
           email: selected.email,
@@ -346,14 +357,29 @@ export default function BookingPage({ navigate }) {
                   { label: "Your Name *", key: "name", type: "text", placeholder: "Priya Sharma" },
                   { label: "Email *", key: "email", type: "email", placeholder: "you@example.com" },
                   { label: "Phone (with +91) *", key: "phone", type: "tel", placeholder: "+919876543210" },
-                ].map((f) => (
-                  <div key={f.key}>
-                    <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">{f.label}</label>
-                    <input type={f.type} value={selected[f.key]} placeholder={f.placeholder}
-                      onChange={(e) => update(f.key, e.target.value)}
-                      className="w-full border border-[#E8E0D8] rounded-xl px-4 py-3 focus:outline-none focus:border-[#B8956A] transition-colors" />
-                  </div>
-                ))}
+                ].map((f) => {
+                  const userStr = localStorage.getItem("gg_user");
+                  const user = userStr ? JSON.parse(userStr) : null;
+                  const isEmailDisabled = f.key === "email" && user && user.role !== "admin";
+
+                  return (
+                    <div key={f.key}>
+                      <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">{f.label}</label>
+                      <input
+                        type={f.type}
+                        value={selected[f.key]}
+                        placeholder={f.placeholder}
+                        onChange={(e) => update(f.key, e.target.value)}
+                        disabled={isEmailDisabled}
+                        style={{
+                          backgroundColor: isEmailDisabled ? "#F5F5F5" : "transparent",
+                          cursor: isEmailDisabled ? "not-allowed" : "text"
+                        }}
+                        className="w-full border border-[#E8E0D8] rounded-xl px-4 py-3 focus:outline-none focus:border-[#B8956A] transition-colors"
+                      />
+                    </div>
+                  );
+                })}
               </div>
 
               <div style={{

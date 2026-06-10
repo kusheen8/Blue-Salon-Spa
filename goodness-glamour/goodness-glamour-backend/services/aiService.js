@@ -13,15 +13,13 @@ const groq = new Groq({
 });
 // ── Salon Knowledge Base ──────────────────────────────────────────────────────
 const SALON_KNOWLEDGE = {
-  name: "Goodness Glamour",
-  tagline: "Where Beauty Meets Luxury",
-  address: "12 Velvet Lane, Blossom Quarter, City Centre",
-  phone: process.env.SALON_PHONE || "+1-800-GLAMOUR",
-  email: "hello@goodnessglamour.com",
+  name: "Blue Spa & Salon",
+  tagline: "Where beauty meets care 💙",
+  address: "Raichandani Square, Golden Mile Rd, Kokapet, Hyderabad, Telangana 500075, India",
+  phone: process.env.SALON_PHONE || "+91 81215 00912",
+  email: "bluespasaloon@gmail.com",
   hours: {
-    "Monday–Friday": "9:00 AM – 8:00 PM",
-    "Saturday":       "8:00 AM – 9:00 PM",
-    "Sunday":         "10:00 AM – 6:00 PM",
+    "Daily": "10:00 AM - 9:00 PM"
   },
   services: [
     { name: "Signature Blowout",           duration: "45 min",  price: "$65",  category: "styling"    },
@@ -76,7 +74,7 @@ SALON DETAILS:
 - Name: ${SALON_KNOWLEDGE.name}
 - Address: ${SALON_KNOWLEDGE.address}
 - Phone: ${SALON_KNOWLEDGE.phone}
-- Hours: Mon–Fri 9AM–8PM | Sat 8AM–9PM | Sun 10AM–6PM
+- Hours: 10:00 AM - 9:00 PM
 
 SERVICES (highlight these naturally):
 ${SALON_KNOWLEDGE.services.map(s => `- ${s.name}: ${s.duration}, ${s.price}`).join('\n')}
@@ -221,6 +219,68 @@ function needsHumanHandoff(message) {
   return triggers.some(t => message.toLowerCase().includes(t));
 }
 
+// ── Detect Booking/Scheduling Intent ──────────────────────────────────────────
+async function checkBookingIntent(userMessage) {
+  try {
+    const prompt = `You are a helper that classifies user messages for a salon.
+Determine if the user is attempting to book, schedule, reserve, cancel, or reschedule an appointment.
+
+Examples of booking actions (YES):
+- "book appointment"
+- "booking"
+- "appointment"
+- "schedule appointment"
+- "reserve appointment"
+- "haircut booking"
+- "salon booking"
+- "cancel appointment"
+- "reschedule appointment"
+- Or any phrase asking to make, change, manage, or cancel a reservation.
+
+Do NOT classify general questions about services, pricing, offers, timings, staff, or salon information as booking actions.
+Examples of general questions (NO):
+- "how much is a haircut?"
+- "what services do you have?"
+- "are there any offers?"
+- "what are your timings?"
+- "who are your stylists?"
+- "address and contact details"
+- "do you recommend balayage?"
+
+If the user message is a booking action, reply with exactly "YES".
+Otherwise, reply with exactly "NO".
+
+User message: "${userMessage}"
+Response (YES or NO):`;
+
+    const completion = await groq.chat.completions.create({
+      model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0,
+      max_tokens: 5,
+    });
+
+    const result = completion.choices[0].message.content.trim().toUpperCase();
+    return result.includes("YES");
+  } catch (error) {
+    console.error("Booking intent classification failed:", error);
+    // Fallback: direct phrase and keyword matching
+    const msgLower = userMessage.toLowerCase();
+    const keywords = [
+      "book appointment",
+      "booking",
+      "appointment",
+      "schedule appointment",
+      "reserve appointment",
+      "haircut booking",
+      "salon booking",
+      "cancel appointment",
+      "reschedule appointment"
+    ];
+    return keywords.some(k => msgLower.includes(k));
+  }
+}
+
 // ── Clear Session ─────────────────────────────────────────────────────────────
 function clearSession(sessionId) {
   conversationStore.delete(sessionId);
@@ -239,4 +299,5 @@ export {
   getHistory,
   SALON_KNOWLEDGE,
   buildSystemPrompt,
+  checkBookingIntent,
 };

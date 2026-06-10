@@ -1,123 +1,40 @@
-# ✨ Goodness Glamour AI Salon Assistant
+# 💙 Blue Spa & Salon — AI Salon Platform (Frontend)
 
-An AI-powered luxury salon web application built using React, Vite, Node.js, Express, Groq AI, and Twilio integrations.
+> Where beauty meets care 💙
 
-This platform provides intelligent salon assistance, hairstyle recommendations, beauty consultations, appointment support, and AI-powered customer interaction.
-
----
-
-# 🚀 Features
-
-## 💇 AI Hair Assistant
-- AI-powered salon chatbot
-- Hairstyle recommendations
-- Haircare suggestions
-- Hair treatment guidance
-- Smart beauty consultation
-
-## 📷 Image Upload Support
-- Upload hairstyle images
-- AI-ready image analysis pipeline
-- Future hairstyle recommendation system
-
-## 📅 Appointment System
-- Book salon appointments
-- Customer-friendly booking UI
-- Responsive booking experience
-
-## 📞 Communication Integrations
-- Twilio Voice support
-- SMS support
-- WhatsApp integration
-- Gmail notifications
-
-## 🎨 Modern UI/UX
-- Responsive design
-- Elegant luxury salon theme
-- Mobile-friendly sidebar assistant
-- Smooth animations and interactions
+This workspace houses the React + Vite frontend application for **Blue Spa & Salon**. It implements customer portals, locator maps, and the interactive multi-model AI chatbot (Aria) client.
 
 ---
 
-# 🛠️ Tech Stack
+## 🏁 How to Run
 
-## Frontend
-- React.js
-- Vite
-- JavaScript
-- CSS
-
-## Backend
-- Node.js
-- Express.js
-
-## AI
-- Groq API
-- HuggingFace API
-
-## Integrations
-- Twilio API
-- Gmail SMTP
-
----
-
-# 📂 Project Structure
-
+### 1. Launch the Development Server
 ```bash
-<<<<<<< HEAD
-goodness-glamour-ui/
-=======
-goodness-glamour-main/
->>>>>>> 9270f7b68385466c3aeb58a00115495f21fa8f77
-│
-├── goodness-glamour/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   │
-│   ├── public/
-│   ├── package.json
-│   └── vite.config.js
-│
-├── goodness-glamour-backend/
-│   ├── routes/
-│   ├── services/
-│   ├── webhooks/
-│   ├── server.js
-│   └── package.json
-
-
-Frontend .env
-VITE_HF_API_KEY=your_huggingface_key
-
-Backend .env
-GROQ_API_KEY=your_groq_key
-HF_API_KEY=your_huggingface_key
-GMAIL_USER=your_email
-GMAIL_APP_PASS=your_app_password
-TWILIO_ACCOUNT_SID=your_sid
-TWILIO_AUTH_TOKEN=your_token
-
-
-Running Frontend
 cd goodness-glamour
 npm install
 npm run dev
+```
+The application will launch on `http://localhost:5173`.
 
+### 2. Configure Environment (`.env`)
+Make sure your environment file matches this schema:
+```env
+VITE_API_URL=http://localhost:4000
+VITE_HF_API_KEY=your_huggingface_inference_key
+```
 
-▶️ Running Backend
-cd goodness-glamour-backend
-npm install
-npm start
+### 3. Build for Production
+```bash
+npm run build
+```
+Static production bundles will compile into the `dist/` directory.
 
+---
 
-
-📌 Future Enhancements
-AI hairstyle detection from images
-Face shape analysis
-Personalized salon recommendations
-AI booking automation
-Customer profile memory
-AI beauty consultation engine
+## 💙 Branding Specs
+- **Name:** Blue Spa & Salon
+- **Tagline:** Where beauty meets care 💙
+- **Address:** Shop No. 302, 3rd Floor, Raichandani Square, Golden Mile Rd, Kokapet, Hyderabad, Telangana 500075, India
+- **Phone:** `+91 81215 00912`
+- **Email:** `bluespasaloon@gmail.com`
+- **Hours:** Daily, 10:00 AM - 9:00 PM

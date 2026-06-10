@@ -26,7 +26,7 @@ router.post('/incoming', async (req, res) => {
   const twiml = new MessagingResponse();
 
   if (needsHumanHandoff(Body)) {
-    twiml.message(`Hi! Our team will call you shortly. Or reach us at ${SALON_KNOWLEDGE.phone}. – Goodness Glamour 💛`);
+    twiml.message(`Hi! Our team will call you shortly. Or reach us at ${SALON_KNOWLEDGE.phone}. – Blue Spa & Salon 💙`);
     res.type('text/xml');
     return res.send(twiml.toString());
   }
@@ -39,7 +39,7 @@ router.post('/incoming', async (req, res) => {
       : result.message;
     twiml.message(text);
   } catch (err) {
-    twiml.message(`Sorry for the trouble! Call us at ${SALON_KNOWLEDGE.phone}. – Goodness Glamour`);
+    twiml.message(`Sorry for the trouble! Call us at ${SALON_KNOWLEDGE.phone}. – Blue Spa & Salon`);
   }
 
   res.type('text/xml');
@@ -68,7 +68,7 @@ router.post('/booking-confirmation', async (req, res, next) => {
     const msg = await client.messages.create({
       from: process.env.TWILIO_PHONE_NUMBER,
       to,
-      body: `✨ Booked! Hi ${clientName}, your ${service} with ${stylist} is confirmed for ${dateTime} at Goodness Glamour. Questions? Reply or call ${SALON_KNOWLEDGE.phone}. See you soon! 💛`,
+      body: `✨ Booked! Hi ${clientName}, your ${service} with ${stylist} is confirmed for ${dateTime} at Blue Spa & Salon. Questions? Reply or call ${SALON_KNOWLEDGE.phone}. See you soon! 💙`,
     });
     res.json({ success: true, sid: msg.sid });
   } catch (err) {

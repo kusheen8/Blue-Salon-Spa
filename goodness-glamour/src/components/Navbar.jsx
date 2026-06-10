@@ -1,4 +1,5 @@
 import { useState } from "react";
+import logo from "./logo.jpg";
 
 export default function Navbar({ navigate, currentPage, isLoggedIn, isAdmin, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -26,25 +27,28 @@ export default function Navbar({ navigate, currentPage, isLoggedIn, isAdmin, onL
       top: 0,
       left: 0,
       right: 0,
-      zIndex: 50,
-      background: "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.98) 100%)",
-      backdropFilter: "blur(20px)",
-      borderBottom: "1px solid rgba(232,224,216,0.6)",
-      boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+      height: "80px",
+      background: "rgba(255, 255, 255, 0.85)",
+      backdropFilter: "blur(12px)",
+      borderBottom: "1px solid rgba(228, 220, 212, 0.5)",
+      zIndex: 1000,
+      display: "flex",
+      alignItems: "center",
+      transition: "all 0.3s",
     }}>
       <div style={{
+        width: "100%",
         maxWidth: "1400px",
         margin: "0 auto",
-        padding: "12px 24px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-      }}>
+      }} className="px-6">
         {/* Logo */}
         <button onClick={() => navigate("home")} style={{
           display: "flex",
-          flexDirection: "column",
-          lineHeight: "1",
+          alignItems: "center",
+          gap: "10px",
           background: "none",
           border: "none",
           cursor: "pointer",
@@ -52,25 +56,39 @@ export default function Navbar({ navigate, currentPage, isLoggedIn, isAdmin, onL
         }}
         onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; }}
         onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; }}>
-          <span style={{
-            fontSize: "24px",
-            fontWeight: "900",
-            letterSpacing: "-0.5px",
-            color: "#1C1C1C",
-            fontFamily: "'Playfair Display', serif",
+          <img src={logo} alt="Blue Spa & Salon Logo" style={{
+            width: "42px",
+            height: "42px",
+            borderRadius: "50%",
+            objectFit: "cover",
+            border: "1px solid #E8E0D8",
+          }} />
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            lineHeight: "1.1",
           }}>
-            Goodness
-          </span>
-          <span style={{
-            fontSize: "11px",
-            letterSpacing: "4px",
-            textTransform: "uppercase",
-            color: "#D4A574",
-            fontWeight: "800",
-            marginTop: "2px",
-          }}>
-            Glamour
-          </span>
+            <span style={{
+              fontSize: "19px",
+              fontWeight: "800",
+              letterSpacing: "-0.3px",
+              color: "#1C1C1C",
+              fontFamily: "'Playfair Display', serif",
+            }}>
+              Blue Spa & Salon
+            </span>
+            <span style={{
+              fontSize: "9px",
+              letterSpacing: "2px",
+              textTransform: "uppercase",
+              color: "#B8956A",
+              fontWeight: "700",
+              marginTop: "2px",
+            }}>
+              Where beauty meets care
+            </span>
+          </div>
         </button>
 
         {/* Desktop Nav */}
@@ -126,23 +144,44 @@ export default function Navbar({ navigate, currentPage, isLoggedIn, isAdmin, onL
           gap: "12px",
         }} className="hidden md:flex">
           {isLoggedIn ? (
-            <button
-              onClick={onLogout}
-              style={{
-                fontSize: "14px",
-                fontWeight: "600",
-                color: "#4A4A4A",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "8px 16px",
-                transition: "all 0.2s",
-              }}
-              onMouseEnter={e => { e.currentTarget.style.color = "#D4A574"; }}
-              onMouseLeave={e => { e.currentTarget.style.color = "#4A4A4A"; }}
-            >
-              Sign Out
-            </button>
+            <>
+              {!isAdmin && (
+                <button
+                  onClick={() => navigate("dashboard")}
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    color: "#4A4A4A",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: "8px 16px",
+                    transition: "all 0.2s",
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.color = "#D4A574"; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = "#4A4A4A"; }}
+                >
+                  Profile
+                </button>
+              )}
+              <button
+                onClick={onLogout}
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#4A4A4A",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "8px 16px",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = "#D4A574"; }}
+                onMouseLeave={e => { e.currentTarget.style.color = "#4A4A4A"; }}
+              >
+                Sign Out
+              </button>
+            </>
           ) : (
             <button
               onClick={() => navigate("login")}
@@ -276,22 +315,44 @@ export default function Navbar({ navigate, currentPage, isLoggedIn, isAdmin, onL
             borderTop: "1px solid #E8E0D8",
           }}>
             {isLoggedIn ? (
-              <button
-                onClick={() => { onLogout(); setMenuOpen(false); }}
-                style={{
-                  flex: 1,
-                  fontSize: "14px",
-                  fontWeight: "700",
-                  border: "2px solid #D4A574",
-                  color: "#D4A574",
-                  background: "white",
-                  padding: "12px",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                }}
-              >
-                Sign Out
-              </button>
+              <>
+                {!isAdmin && (
+                  <button
+                    onClick={() => { navigate("dashboard"); setMenuOpen(false); }}
+                    style={{
+                      flex: 1,
+                      fontSize: "14px",
+                      fontWeight: "700",
+                      border: "2px solid #D4A574",
+                      color: "#D4A574",
+                      background: "white",
+                      padding: "12px",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      textAlign: "center"
+                    }}
+                  >
+                    Profile
+                  </button>
+                )}
+                <button
+                  onClick={() => { onLogout(); setMenuOpen(false); }}
+                  style={{
+                    flex: 1,
+                    fontSize: "14px",
+                    fontWeight: "700",
+                    border: "2px solid #E53E3E",
+                    color: "#E53E3E",
+                    background: "white",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    textAlign: "center"
+                  }}
+                >
+                  Sign Out
+                </button>
+              </>
             ) : (
               <button
                 onClick={() => { navigate("login"); setMenuOpen(false); }}
@@ -305,6 +366,7 @@ export default function Navbar({ navigate, currentPage, isLoggedIn, isAdmin, onL
                   padding: "12px",
                   borderRadius: "8px",
                   cursor: "pointer",
+                  textAlign: "center"
                 }}
               >
                 Sign In

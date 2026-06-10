@@ -2,11 +2,7 @@ import { useState } from "react";
 
 const API = `${import.meta.env.VITE_API_URL}/api`;
 
-// ✅ Admin credentials — change these to whatever you want
-const ADMIN_EMAIL = "admin@goodnessglam.com";
-const ADMIN_PASSWORD = "admin123";
-
-export default function LoginPage({ navigate, onLogin }) {
+export default function LoginPage({ navigate, onLogin, authMessage }) {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -19,30 +15,34 @@ export default function LoginPage({ navigate, onLogin }) {
     setError("");
     setLoading(true);
 
-    setTimeout(() => {
-      // ✅ Check admin credentials
-      if (form.email === ADMIN_EMAIL && form.password === ADMIN_PASSWORD) {
-        localStorage.setItem("gg_user", JSON.stringify({ email: form.email, role: "admin" }));
-        onLogin(true); // admin = true
-      } else if (form.password.length >= 6) {
-        // Regular user login
-        fetch(`${API}/users`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: form.email,
-            name: form.email.split("@")[0]
-          })
-        })
-        .catch(err => console.error("Error storing user on login:", err));
-
-        localStorage.setItem("gg_user", JSON.stringify({ email: form.email, role: "user" }));
-        onLogin(false); // admin = false
-      } else {
-        setError("Invalid credentials. Please try again.");
-      }
-      setLoading(false);
-    }, 1000);
+    fetch(`${API}/users/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: form.email,
+        password: form.password
+      })
+    })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((data) => {
+            throw new Error(data.error || "Invalid credentials. Please try again.");
+          });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data.success) {
+          onLogin(data.token, data.user);
+        }
+      })
+      .catch((err) => {
+        console.error("Login submission error:", err.message);
+        setError(err.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const handleKeyDown = (e) => {
@@ -57,10 +57,10 @@ export default function LoginPage({ navigate, onLogin }) {
       <div style={{ width: "100%", maxWidth: "420px" }}>
         {/* Logo & Header */}
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
-          <div style={{ fontSize: "36px", fontWeight: "900", letterSpacing: "-0.5px", color: "#1C1C1C", fontFamily: "'Playfair Display', serif" }}>Goodness</div>
-          <div style={{ fontSize: "12px", letterSpacing: "5px", textTransform: "uppercase", color: "#D4A574", marginBottom: "28px", fontWeight: "800" }}>Glamour</div>
+          <div style={{ fontSize: "36px", fontWeight: "900", letterSpacing: "-0.5px", color: "#1C1C1C", fontFamily: "'Playfair Display', serif" }}>Blue Spa</div>
+          <div style={{ fontSize: "12px", letterSpacing: "5px", textTransform: "uppercase", color: "#2563EB", marginBottom: "28px", fontWeight: "800" }}>& Salon</div>
           <h1 style={{ fontSize: "28px", fontWeight: "900", color: "#1C1C1C", margin: "0 0 8px 0", letterSpacing: "-0.5px", fontFamily: "'Playfair Display', serif" }}>Welcome Back</h1>
-          <p style={{ color: "#9A9A9A", fontSize: "14px", marginTop: "8px" }}>Sign in to manage your appointments</p>
+          <p style={{ color: "#9A9A9A", fontSize: "14px", marginTop: "8px" }}>Manage appointments, customers and salon operations.</p>
         </div>
 
         {/* Login Card */}
@@ -89,8 +89,8 @@ export default function LoginPage({ navigate, onLogin }) {
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                 <label style={{ fontSize: "13px", fontWeight: "700", color: "#4A4A4A", textTransform: "uppercase", letterSpacing: "0.5px" }}>Password</label>
                 <button style={{ fontSize: "12px", color: "#D4A574", background: "none", border: "none", cursor: "pointer", fontWeight: "700", transition: "all 0.2s" }}
-                onMouseEnter={e => { e.currentTarget.style.textDecoration = "underline"; }}
-                onMouseLeave={e => { e.currentTarget.style.textDecoration = "none"; }}>
+                  onMouseEnter={e => { e.currentTarget.style.textDecoration = "underline"; }}
+                  onMouseLeave={e => { e.currentTarget.style.textDecoration = "none"; }}>
                   Forgot?
                 </button>
               </div>
@@ -108,6 +108,12 @@ export default function LoginPage({ navigate, onLogin }) {
                 onBlur={e => { e.currentTarget.style.borderColor = "#E8E0D8"; e.currentTarget.style.boxShadow = "none"; }}
               />
             </div>
+
+            {authMessage && !error && (
+              <p style={{ color: "#856404", fontSize: "13px", background: "#FFF9E6", border: "1px solid #FFEBAA", padding: "12px 14px", borderRadius: "8px", margin: "0", fontWeight: "600" }}>
+                🔑 {authMessage}
+              </p>
+            )}
 
             {error && (
               <p style={{ color: "#E53E3E", fontSize: "13px", background: "#FED7D7", padding: "12px 14px", borderRadius: "8px", margin: "0" }}>{error}</p>
@@ -147,8 +153,8 @@ export default function LoginPage({ navigate, onLogin }) {
             fontSize: "14px", fontWeight: "700", color: "#4A4A4A", background: "white",
             cursor: "pointer", transition: "all 0.2s",
           }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = "#D4A574"; e.currentTarget.style.background = "#FAF8F5"; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = "#E8E0D8"; e.currentTarget.style.background = "white"; }}>
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "#D4A574"; e.currentTarget.style.background = "#FAF8F5"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "#E8E0D8"; e.currentTarget.style.background = "white"; }}>
             🔍 Continue with Google
           </button>
         </div>
@@ -157,8 +163,8 @@ export default function LoginPage({ navigate, onLogin }) {
         <p style={{ textAlign: "center", fontSize: "14px", color: "#9A9A9A", marginTop: "24px" }}>
           Don't have an account?{" "}
           <button onClick={() => navigate("signup")} style={{ color: "#D4A574", fontWeight: "800", background: "none", border: "none", cursor: "pointer", transition: "all 0.2s" }}
-          onMouseEnter={e => { e.currentTarget.style.textDecoration = "underline"; }}
-          onMouseLeave={e => { e.currentTarget.style.textDecoration = "none"; }}>
+            onMouseEnter={e => { e.currentTarget.style.textDecoration = "underline"; }}
+            onMouseLeave={e => { e.currentTarget.style.textDecoration = "none"; }}>
             Sign Up Free
           </button>
         </p>
@@ -166,7 +172,7 @@ export default function LoginPage({ navigate, onLogin }) {
         {/* Admin Hint */}
         <div style={{ textAlign: "center", fontSize: "12px", color: "#B8B0A8", marginTop: "20px", paddingTop: "20px", borderTop: "1px solid #E8E0D8" }}>
           <p style={{ margin: "0 0 4px 0" }}>💡 Demo Credentials:</p>
-          <p style={{ margin: "0", fontFamily: "monospace" }}>admin@goodnessglam.com / admin123</p>
+          <p style={{ margin: "0", fontFamily: "monospace" }}>kusheendhar@gmail.com / Admin@123blue</p>
         </div>
       </div>
       <style>{`

@@ -16,10 +16,10 @@ const initServices = [
 ];
 
 const initStylists = [
-  { id: 1, name: "Priya Sharma", role: "Color Specialist", phone: "9876543210", email: "priya@gg.com", clients: 38, rating: "4.9" },
-  { id: 2, name: "Bipin Kumar", role: "Senior Stylist", phone: "9123456789", email: "bipin@gg.com", clients: 52, rating: "5.0" },
-  { id: 3, name: "Nadim Ali", role: "Grooming Expert", phone: "9988776655", email: "nadim@gg.com", clients: 41, rating: "4.8" },
-  { id: 4, name: "Lakshmi R.", role: "Skin & Nail", phone: "9876501234", email: "lakshmi@gg.com", clients: 29, rating: "4.9" },
+  { id: 1, name: "Priya Sharma", role: "Color Specialist", phone: "9876543210", email: "priya@bluespasalon.com", clients: 38, rating: "4.9" },
+  { id: 2, name: "Bipin Kumar", role: "Senior Stylist", phone: "9123456789", email: "bipin@bluespasalon.com", clients: 52, rating: "5.0" },
+  { id: 3, name: "Nadim Ali", role: "Grooming Expert", phone: "9988776655", email: "nadim@bluespasalon.com", clients: 41, rating: "4.8" },
+  { id: 4, name: "Lakshmi R.", role: "Skin & Nail", phone: "9876501234", email: "lakshmi@bluespasalon.com", clients: 29, rating: "4.9" },
 ];
 
 const statusColor = {
@@ -89,7 +89,7 @@ function Field({ label, value, onChange, type = "text" }) {
 }
 
 // ── Main AdminPage ─────────────────────────────────────────────────────────────
-export default function AdminPage({ navigate }) {
+export default function AdminPage({ navigate, onLogout }) {
   const [activeTab, setActiveTab] = useState("bookings");
   const [filter, setFilter] = useState("all");
 
@@ -119,7 +119,18 @@ export default function AdminPage({ navigate }) {
     try {
       setLoadingBookings(true);
       const API = `${import.meta.env.VITE_API_URL}/api`;
-      const res = await fetch(`${API}/bookings/all`);
+      const token = localStorage.getItem("gg_token");
+      const res = await fetch(`${API}/bookings/all`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (res.status === 401 || res.status === 403) {
+        alert("Session expired or unauthorized. Please sign in again.");
+        if (onLogout) onLogout();
+        else navigate("login");
+        return;
+      }
       if (!res.ok) throw new Error("Failed to fetch bookings");
       const data = await res.json();
       
@@ -148,7 +159,18 @@ export default function AdminPage({ navigate }) {
     try {
       setLoadingUsers(true);
       const API = `${import.meta.env.VITE_API_URL}/api`;
-      const res = await fetch(`${API}/users`);
+      const token = localStorage.getItem("gg_token");
+      const res = await fetch(`${API}/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (res.status === 401 || res.status === 403) {
+        alert("Session expired or unauthorized. Please sign in again.");
+        if (onLogout) onLogout();
+        else navigate("login");
+        return;
+      }
       if (!res.ok) throw new Error("Failed to fetch users");
       const data = await res.json();
       setUsers(data);
@@ -192,17 +214,27 @@ export default function AdminPage({ navigate }) {
       };
       
       const API = `${import.meta.env.VITE_API_URL}/api`;
+      const token = localStorage.getItem("gg_token");
       fetch(`${API}/bookings/${modal.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify(updatedData)
       })
       .then(res => {
+        if (res.status === 401 || res.status === 403) {
+          alert("Session expired or unauthorized. Please sign in again.");
+          if (onLogout) onLogout();
+          else navigate("login");
+          return;
+        }
         if (!res.ok) throw new Error("Failed to update booking");
         return res.json();
       })
-      .then(() => {
-        fetchBookings();
+      .then((data) => {
+        if (data) fetchBookings();
       })
       .catch(err => {
         console.error(err);
@@ -343,9 +375,8 @@ export default function AdminPage({ navigate }) {
 
             <button
               onClick={() => {
-                window.open(
-                  "https://goodness-glamour-backend-9rb6.onrender.com/download-logs"
-                );
+                const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+                window.open(`${API}/download-logs`);
               }}
               style={{
                 padding: "14px 24px",

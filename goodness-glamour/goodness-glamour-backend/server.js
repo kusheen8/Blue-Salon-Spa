@@ -14,11 +14,14 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, ".env") });
 import whatsappRoutes from "./routes/whatsapp.js";
 import chatRoutes from "./routes/chat.js";
+import billingRoutes from "./routes/billing.js";
+import Razorpay from "razorpay";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const { BrevoClient } = require("@getbrevo/brevo");
 import booking from "./Models/booking.js";
 import User from "./Models/user.js";
+import Plan from "./Models/plan.js";
 import fs from "fs";
 import connectDB from "./config/db.js";
 import bcrypt from "bcryptjs";
@@ -27,6 +30,7 @@ import { verifyToken, authorizeRoles } from "./middleware/auth.js";
 
 connectDB().then(() => {
   seedAdminUser();
+  seedPlans();
 });
 
 async function seedAdminUser() {
@@ -42,6 +46,8 @@ async function seedAdminUser() {
         role: "admin",
         salonName: "Blue Spa & Salon",
         isActive: true,
+        subscriptionStatus: "trial",
+        trialCallsRemaining: 2,
         createdAt: new Date()
       });
       console.log("👥 Default Admin user seeded successfully!");
@@ -49,11 +55,88 @@ async function seedAdminUser() {
       // Force update of role and password to guarantee it matches admin requirements
       existingAdmin.role = "admin";
       existingAdmin.password = await bcrypt.hash("Admin@123blue", 10);
+      if (existingAdmin.subscriptionStatus === undefined || existingAdmin.subscriptionStatus === null) {
+        existingAdmin.subscriptionStatus = "trial";
+        existingAdmin.trialCallsRemaining = 2;
+      }
       await existingAdmin.save();
       console.log("👥 Default Admin user updated to role: admin with seeded password successfully!");
     }
   } catch (err) {
     console.error("❌ Seeding admin user error:", err.message);
+  }
+}
+
+async function seedPlans() {
+  const isRazorpayConfigured = !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
+  let razorpay = null;
+  if (isRazorpayConfigured) {
+    razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+  }
+
+  const plans = [
+    { name: "Starter", price: 999, features: ["2 voice agent calls limit removed", "Email/SMS Alerts", "Basic Support"] },
+    { name: "Growth", price: 2499, features: ["Everything in Starter", "Premium AI responses", "Priority Support"] },
+    { name: "Premium", price: 4999, features: ["Everything in Growth", "Dedicated Stylist Scheduling", "24/7 Phone Support"] }
+  ];
+
+  for (const p of plans) {
+    let existing = await Plan.findOne({ name: p.name });
+    if (!existing) {
+      try {
+        let rpPlanId = `plan_mock_${p.name.toLowerCase()}`;
+        if (isRazorpayConfigured) {
+          const rpPlan = await razorpay.plans.create({
+            period: "monthly",
+            interval: 1,
+            item: {
+              name: `${p.name} Plan`,
+              amount: p.price * 100, // in paise
+              currency: "INR"
+            }
+          });
+          rpPlanId = rpPlan.id;
+        }
+        await Plan.create({
+          name: p.name,
+          price: p.price,
+          billingCycle: "month",
+          razorpayPlanId: rpPlanId,
+          features: p.features
+        });
+        console.log(`Plan ${p.name} seeded successfully!`);
+      } catch (err) {
+        console.error(`Failed to create plan ${p.name} on Razorpay:`, err.message, ". Falling back to mock.");
+        await Plan.create({
+          name: p.name,
+          price: p.price,
+          billingCycle: "month",
+          razorpayPlanId: `plan_mock_${p.name.toLowerCase()}`,
+          features: p.features
+        });
+      }
+    } else if (isRazorpayConfigured && existing.razorpayPlanId.startsWith("plan_mock_")) {
+      try {
+        console.log(`Upgrading existing plan ${p.name} from mock to real Razorpay plan...`);
+        const rpPlan = await razorpay.plans.create({
+          period: "monthly",
+          interval: 1,
+          item: {
+            name: `${p.name} Plan`,
+            amount: p.price * 100,
+            currency: "INR"
+          }
+        });
+        existing.razorpayPlanId = rpPlan.id;
+        await existing.save();
+        console.log(`Plan ${p.name} updated with Razorpay ID: ${rpPlan.id}`);
+      } catch (err) {
+        console.error(`Failed to update plan ${p.name} on Razorpay:`, err.message);
+      }
+    }
   }
 }
 
@@ -70,7 +153,12 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
-app.use(express.json());
+app.use(express.json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
+app.use("/api/billing", billingRoutes);
 app.use("/api/voice", voiceRoutes);
 app.use("/api/sms", smsRoutes); app.use("/api/whatsapp", whatsappRoutes);
 app.use("/api/chat", chatRoutes);
@@ -1016,6 +1104,30 @@ app.get("/api/create-web-call", async (req, res) => {
   try {
 
     console.log("🚀 /api/create-web-call hit");
+
+    // Subscription & trial check
+    const admin = await User.findOne({ role: "admin" });
+    if (!admin) {
+      return res.status(403).json({
+        error: "Voice assistant currently unavailable. Please contact the salon directly."
+      });
+    }
+
+    const isTrialValid = admin.subscriptionStatus === "trial" && admin.trialCallsRemaining > 0;
+    const isActive = admin.subscriptionStatus === "active";
+
+    if (!isActive && !isTrialValid) {
+      return res.status(403).json({
+        error: "Voice assistant currently unavailable. Please contact the salon directly."
+      });
+    }
+
+    // Decrement trial calls if trial active
+    if (admin.subscriptionStatus === "trial") {
+      admin.trialCallsRemaining = admin.trialCallsRemaining - 1;
+      await admin.save();
+      console.log(`[RETELL] Trial call decremented. Remaining: ${admin.trialCallsRemaining}`);
+    }
 
     console.log("🔑 RETELL KEY EXISTS:",
       !!process.env.RETELL_API_KEY

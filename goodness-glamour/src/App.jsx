@@ -6,6 +6,7 @@ import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import AdminPage from "./pages/AdminPage";
+import BillingPage from "./pages/BillingPage";
 
 export default function App() {
   const [page, setPage] = useState("home");
@@ -67,6 +68,12 @@ export default function App() {
     // ✅ Protect admin route — only admins can access
     if (p === "admin" && !isAdmin) {
       setAuthMessage("Please sign in as admin to continue.");
+      setPage("login");
+      return;
+    }
+    // ✅ Protect billing route — only admins can access
+    if (p === "billing" && !isAdmin) {
+      setAuthMessage("Access denied. Admin only.");
       setPage("login");
       return;
     }
@@ -141,6 +148,7 @@ export default function App() {
         {page === "login"     && <LoginPage     navigate={navigate} onLogin={handleLogin} authMessage={authMessage} />}
         {page === "signup"    && <SignupPage    navigate={navigate} onLogin={handleLogin} />}
         {page === "admin"     && <AdminPage     navigate={navigate} onLogout={handleLogout} />}
+        {page === "billing"   && <BillingPage   navigate={navigate} />}
       </main>
     </div>
   );

@@ -374,6 +374,26 @@ export default function AdminPage({ navigate, onLogout }) {
           }}>
 
             <button
+              onClick={() => navigate("billing")}
+              style={{
+                padding: "14px 24px",
+                borderRadius: "8px",
+                border: "none",
+                background: "linear-gradient(135deg, #2563EB, #1D4ED8)",
+                color: "white",
+                cursor: "pointer",
+                fontWeight: "800",
+                fontSize: "14px",
+                boxShadow: "0 4px 12px rgba(37,99,235,0.2)",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 6px 16px rgba(37,99,235,0.3)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(37,99,235,0.2)"; }}
+            >
+              💳 Subscriptions & Billing
+            </button>
+
+            <button
               onClick={() => {
                 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
                 window.open(`${API}/download-logs`);

@@ -67,6 +67,10 @@ export default function VirtualAssistantCard({ popupOnly = false }) {
       const data = await response.json();
       console.log("Retell Response:", data);
 
+      if (data.error || !response.ok) {
+        throw new Error(data.error || "Voice assistant currently unavailable. Please contact the salon directly.");
+      }
+
       // start voice call
       await retellWebClient.startCall({
         accessToken: data.access_token
@@ -94,6 +98,7 @@ export default function VirtualAssistantCard({ popupOnly = false }) {
 
     } catch (err) {
       console.error("Retell Error:", err);
+      alert(err.message || "Voice assistant currently unavailable. Please contact the salon directly.");
       setShowCallPopup(false);
       setIsConnecting(false);
       setConnectionStatus("connecting");

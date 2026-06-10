@@ -32,6 +32,24 @@ const userSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  subscriptionStatus: {
+    type: String,
+    enum: ["trial", "active", "suspended", "cancelled", "expired"],
+    default: "trial"
+  },
+  trialCallsRemaining: {
+    type: Number,
+    default: 2
+  },
+  currentPlan: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Plan",
+    default: null
+  },
+  renewalDate: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true

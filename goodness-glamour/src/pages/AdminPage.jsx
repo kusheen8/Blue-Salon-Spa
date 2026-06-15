@@ -101,6 +101,9 @@ export default function AdminPage({ navigate, onLogout }) {
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [errorUsers, setErrorUsers] = useState("");
 
+  const [voiceAnalytics, setVoiceAnalytics] = useState(null);
+  const [loadingVoice, setLoadingVoice] = useState(true);
+
   const [services, setServices] = useState(() => {
     const local = localStorage.getItem("gg_services");
     return local ? JSON.parse(local) : initServices;
@@ -183,9 +186,33 @@ export default function AdminPage({ navigate, onLogout }) {
     }
   };
 
+  const fetchVoiceAnalytics = async () => {
+    try {
+      setLoadingVoice(true);
+      const API = `${import.meta.env.VITE_API_URL}/api`;
+      const token = localStorage.getItem("gg_token");
+      const res = await fetch(`${API}/voice-analytics`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (res.status === 401 || res.status === 403) {
+        return;
+      }
+      if (!res.ok) throw new Error("Failed to fetch voice analytics");
+      const data = await res.json();
+      setVoiceAnalytics(data);
+    } catch (err) {
+      console.error("Failed to fetch voice analytics:", err);
+    } finally {
+      setLoadingVoice(false);
+    }
+  };
+
   useEffect(() => {
     fetchBookings();
     fetchUsers();
+    fetchVoiceAnalytics();
   }, []);
 
   const openEdit = (type, item) => {
@@ -456,6 +483,44 @@ export default function AdminPage({ navigate, onLogout }) {
               <div style={{ fontSize: "13px", color: "#D4A574", marginTop: "8px", fontWeight: "800" }}>{s.change}</div>
             </div>
           ))}
+
+          {/* Voice Assistant Usage Card */}
+          <div style={{
+            background: "white", borderRadius: "16px", padding: "28px 24px", border: `1px solid ${border}`,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.06)", transition: "all 0.3s",
+            display: "flex", flexDirection: "column", justifyContent: "space-between"
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 12px 32px rgba(212,165,116,0.15)"; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.06)"; }}>
+            <div>
+              <div style={{ fontSize: "36px", marginBottom: "12px" }}>🎙️</div>
+              <div style={{ fontSize: "12px", color: gray, fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px" }}>Voice Assistant Usage</div>
+              
+              {loadingVoice ? (
+                <div style={{ fontSize: "14px", color: gray, marginTop: "12px" }}>Loading stats...</div>
+              ) : voiceAnalytics ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "12px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px" }}>
+                    <span style={{ color: gray, fontWeight: "600" }}>Total Calls:</span>
+                    <span style={{ color: dark, fontWeight: "800" }}>{voiceAnalytics.totalCalls}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px" }}>
+                    <span style={{ color: gray, fontWeight: "600" }}>Total Minutes:</span>
+                    <span style={{ color: dark, fontWeight: "800" }}>{voiceAnalytics.totalMinutes}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px" }}>
+                    <span style={{ color: gray, fontWeight: "600" }}>Avg Duration:</span>
+                    <span style={{ color: dark, fontWeight: "800" }}>{voiceAnalytics.avgDurationLabel}</span>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ fontSize: "14px", color: gray, marginTop: "12px" }}>No data available</div>
+              )}
+            </div>
+            <div style={{ fontSize: "13px", color: "#D4A574", marginTop: "12px", fontWeight: "800" }}>
+              Overall voice usage
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}

@@ -151,11 +151,7 @@ export default function LoginPage({ navigate, onLogin, authMessage }) {
           </button>
         </p>
 
-        {/* Admin Hint */}
-        <div style={{ textAlign: "center", fontSize: "12px", color: "#B8B0A8", marginTop: "20px", paddingTop: "20px", borderTop: "1px solid #E8E0D8" }}>
-          <p style={{ margin: "0 0 4px 0" }}>💡 Demo Credentials:</p>
-          <p style={{ margin: "0", fontFamily: "monospace" }}>kusheendhar@gmail.com / Admin@123blue</p>
-        </div>
+
       </div>
       <style>{`
         @keyframes spin {

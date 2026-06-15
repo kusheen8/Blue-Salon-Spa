@@ -101,7 +101,14 @@ export default function App() {
     setIsAdmin(user.role === "admin");
     setCurrentUser(user);
     setAuthMessage("");
-    setPage(user.role === "admin" ? "admin" : "dashboard");
+    
+    const returnPage = localStorage.getItem("gg_return_page");
+    if (returnPage) {
+      localStorage.removeItem("gg_return_page");
+      setPage(returnPage);
+    } else {
+      setPage(user.role === "admin" ? "admin" : "dashboard");
+    }
     window.scrollTo(0, 0);
   }
 

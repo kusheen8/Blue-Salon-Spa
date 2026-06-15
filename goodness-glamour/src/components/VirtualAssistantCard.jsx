@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { RetellWebClient } from "retell-client-js-sdk";
 
-export default function VirtualAssistantCard({ popupOnly = false }) {
+export default function VirtualAssistantCard({ popupOnly = false, navigate }) {
 
   const [showCallPopup, setShowCallPopup] = useState(false);
 
@@ -47,6 +47,15 @@ export default function VirtualAssistantCard({ popupOnly = false }) {
 
   // ─── START RETELL CALL ─────────────────────────
   const startRetellCall = async () => {
+    const token = localStorage.getItem("gg_token");
+    if (!token) {
+      localStorage.setItem("gg_return_page", "home");
+      if (navigate) {
+        navigate("login", "Please log in to use the AI Voice Assistant.");
+      }
+      return;
+    }
+
     try {
       setShowCallPopup(true);
       setIsConnecting(true);

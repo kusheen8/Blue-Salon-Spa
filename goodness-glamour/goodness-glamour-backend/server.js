@@ -35,32 +35,65 @@ connectDB().then(() => {
 
 async function seedAdminUser() {
   try {
-    const adminEmail = "kusheendhar@gmail.com";
-    const existingAdmin = await User.findOne({ email: adminEmail });
-    if (!existingAdmin) {
-      const hashedPassword = await bcrypt.hash("Admin@123blue", 10);
-      await User.create({
-        fullName: "Administrator",
-        email: adminEmail,
-        password: hashedPassword,
-        role: "admin",
-        salonName: "Blue Spa & Salon",
-        isActive: true,
-        subscriptionStatus: "trial",
-        trialCallsRemaining: 2,
-        createdAt: new Date()
-      });
-      console.log("👥 Default Admin user seeded successfully!");
-    } else {
-      // Force update of role and password to guarantee it matches admin requirements
-      existingAdmin.role = "admin";
-      existingAdmin.password = await bcrypt.hash("Admin@123blue", 10);
-      if (existingAdmin.subscriptionStatus === undefined || existingAdmin.subscriptionStatus === null) {
-        existingAdmin.subscriptionStatus = "trial";
-        existingAdmin.trialCallsRemaining = 2;
+    const oldEmail = "kusheendhar@gmail.com";
+    const newEmail = "bluespasaloon@gmail.com";
+    const hashedPassword = await bcrypt.hash("Admin123@blue", 10);
+
+    const oldAdmin = await User.findOne({ email: oldEmail });
+    const newAdmin = await User.findOne({ email: newEmail });
+
+    if (oldAdmin) {
+      if (newAdmin) {
+        // Both exist: delete the old one to ensure there is only one admin account after migration
+        await User.deleteOne({ _id: oldAdmin._id });
+        console.log(`👥 Duplicate old admin account ${oldEmail} deleted.`);
+
+        newAdmin.role = "admin";
+        newAdmin.password = hashedPassword;
+        if (newAdmin.subscriptionStatus === undefined || newAdmin.subscriptionStatus === null) {
+          newAdmin.subscriptionStatus = "trial";
+          newAdmin.trialCallsRemaining = 2;
+        }
+        await newAdmin.save();
+        console.log(`👥 Seeded admin account ${newEmail} updated successfully.`);
+      } else {
+        // Migrate/update old admin account to the new email
+        oldAdmin.email = newEmail;
+        oldAdmin.role = "admin";
+        oldAdmin.password = hashedPassword;
+        if (oldAdmin.subscriptionStatus === undefined || oldAdmin.subscriptionStatus === null) {
+          oldAdmin.subscriptionStatus = "trial";
+          oldAdmin.trialCallsRemaining = 2;
+        }
+        await oldAdmin.save();
+        console.log(`👥 Migrated old admin user ${oldEmail} to ${newEmail} successfully!`);
       }
-      await existingAdmin.save();
-      console.log("👥 Default Admin user updated to role: admin with seeded password successfully!");
+    } else {
+      if (newAdmin) {
+        // Only new admin exists, update it to guarantee role and password
+        newAdmin.role = "admin";
+        newAdmin.password = hashedPassword;
+        if (newAdmin.subscriptionStatus === undefined || newAdmin.subscriptionStatus === null) {
+          newAdmin.subscriptionStatus = "trial";
+          newAdmin.trialCallsRemaining = 2;
+        }
+        await newAdmin.save();
+        console.log(`👥 Seeded admin account ${newEmail} updated successfully.`);
+      } else {
+        // Neither exists: create new admin
+        await User.create({
+          fullName: "Administrator",
+          email: newEmail,
+          password: hashedPassword,
+          role: "admin",
+          salonName: "Blue Spa & Salon",
+          isActive: true,
+          subscriptionStatus: "trial",
+          trialCallsRemaining: 2,
+          createdAt: new Date()
+        });
+        console.log(`👥 Seeded admin account ${newEmail} created successfully.`);
+      }
     }
   } catch (err) {
     console.error("❌ Seeding admin user error:", err.message);
@@ -663,6 +696,45 @@ app.get("/api/bookings/all", verifyToken, authorizeRoles("admin"), async (req, r
   }
 });
 
+// ─── ROUTE 4.3B: Get Voice Analytics (Admin Only) ───────────────────────────────────
+app.get("/api/voice-analytics", verifyToken, authorizeRoles("admin"), async (req, res) => {
+  try {
+    const analytics = getVoiceAnalytics();
+    const callsList = Object.values(analytics.calls || {});
+    const totalCalls = callsList.length;
+
+    let totalMs = 0;
+    callsList.forEach(c => {
+      totalMs += c.durationMs || 0;
+    });
+
+    const totalMinutes = Math.round(totalMs / 60000);
+
+    let avgDurationLabel = "0s";
+    if (totalCalls > 0) {
+      const avgMs = totalMs / totalCalls;
+      const avgSeconds = Math.round(avgMs / 1000);
+      if (avgSeconds >= 60) {
+        const mins = Math.floor(avgSeconds / 60);
+        const secs = avgSeconds % 60;
+        avgDurationLabel = `${mins}m ${secs}s`;
+      } else {
+        avgDurationLabel = `${avgSeconds}s`;
+      }
+    }
+
+    res.json({
+      success: true,
+      totalCalls,
+      totalMinutes,
+      avgDurationLabel
+    });
+  } catch (err) {
+    console.error("Get voice analytics error:", err);
+    res.status(500).json({ error: "Failed to fetch voice analytics data" });
+  }
+});
+
 // ─── ROUTE 4.4: Register User ────────────────────────────────────────────────
 app.post("/api/users", async (req, res) => {
   try {
@@ -869,9 +941,50 @@ cron.schedule("* * * * *", async () => {
         continue;
       }
 
-      const apptTime = new Date(
-        `${booking.date}T${convertTo24hr(booking.time)}+05:30`
-      );
+      let apptTime;
+      if (booking.time === "Scheduled") {
+        let dateStr = booking.date;
+        if (typeof dateStr === "string") {
+          let cleaned = dateStr.trim();
+          cleaned = cleaned.replace(/\s+at\s+/g, " ");
+          cleaned = cleaned.replace(/\b(\d+)(st|nd|rd|th)\b/gi, "$1");
+          if (!/\b20\d{2}\b/.test(cleaned)) {
+            const currentYear = new Date().getFullYear();
+            const timeMatch = cleaned.match(/\b\d{1,2}:\d{2}\b/);
+            if (timeMatch) {
+              const timeIndex = timeMatch.index;
+              const beforeTime = cleaned.substring(0, timeIndex).trim();
+              const afterTime = cleaned.substring(timeIndex).trim();
+              if (beforeTime.endsWith(",")) {
+                cleaned = `${beforeTime} ${currentYear} ${afterTime}`;
+              } else {
+                cleaned = `${beforeTime}, ${currentYear} ${afterTime}`;
+              }
+            } else {
+              cleaned = `${cleaned}, ${currentYear}`;
+            }
+          }
+          const hasTimezone = /Z|GMT|UTC|[+-]\d{2}:?\d{2}$/.test(cleaned);
+          if (!hasTimezone) {
+            cleaned = `${cleaned} +05:30`;
+          }
+          apptTime = new Date(cleaned);
+        } else {
+          apptTime = new Date(booking.date);
+        }
+      } else {
+        apptTime = new Date(
+          `${booking.date}T${convertTo24hr(booking.time)}+05:30`
+        );
+      }
+
+      if (isNaN(apptTime.getTime())) {
+        console.warn(
+          `[CRON] Invalid appointment time for booking ${booking.name || "Unknown"}: date="${booking.date}", time="${booking.time}"`
+        );
+        continue;
+      }
+
       console.log(
         "[CRON] ISO Appointment:",
         apptTime.toISOString()
@@ -1097,6 +1210,90 @@ function convertTo24hr(timeStr) {
   }
 }
 
+function parseVoiceDateTime(dateTimeStr) {
+  if (!dateTimeStr || typeof dateTimeStr !== "string") {
+    return { date: "", time: "Scheduled" };
+  }
+  let cleaned = dateTimeStr.trim();
+  cleaned = cleaned.replace(/\s+at\s+/g, " ");
+  cleaned = cleaned.replace(/\b(\d+)(st|nd|rd|th)\b/gi, "$1");
+  
+  if (!/\b20\d{2}\b/.test(cleaned)) {
+    const currentYear = new Date().getFullYear();
+    const timeMatch = cleaned.match(/\b\d{1,2}:\d{2}\b/);
+    if (timeMatch) {
+      const timeIndex = timeMatch.index;
+      const beforeTime = cleaned.substring(0, timeIndex).trim();
+      const afterTime = cleaned.substring(timeIndex).trim();
+      if (beforeTime.endsWith(",")) {
+        cleaned = `${beforeTime} ${currentYear} ${afterTime}`;
+      } else {
+        cleaned = `${beforeTime}, ${currentYear} ${afterTime}`;
+      }
+    } else {
+      cleaned = `${cleaned}, ${currentYear}`;
+    }
+  }
+
+  const hasTimezone = /Z|GMT|UTC|[+-]\d{2}:?\d{2}$/.test(cleaned);
+  if (!hasTimezone) {
+    cleaned = `${cleaned} +05:30`;
+  }
+
+  let d = new Date(cleaned);
+  if (isNaN(d.getTime())) {
+    const fallbackCleaned = cleaned.replace(/\s*[+-]\d{2}:?\d{2}$/, "");
+    d = new Date(fallbackCleaned);
+  }
+
+  if (isNaN(d.getTime())) {
+    console.error(`[parseVoiceDateTime] Failed to parse: "${dateTimeStr}"`);
+    return { date: dateTimeStr, time: "Scheduled" };
+  }
+
+  const dateFormatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  });
+  const formattedDate = dateFormatter.format(d);
+
+  const timeFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  });
+  const formattedTime = timeFormatter.format(d);
+
+  return { date: formattedDate, time: formattedTime };
+}
+
+// ─── VOICE ANALYTICS STORAGE ────────────────────────
+const ANALYTICS_FILE = path.join(__dirname, "voice_analytics.json");
+
+function getVoiceAnalytics() {
+  try {
+    if (!fs.existsSync(ANALYTICS_FILE)) {
+      return { calls: {} };
+    }
+    const data = fs.readFileSync(ANALYTICS_FILE, "utf8");
+    return JSON.parse(data);
+  } catch (err) {
+    console.error("Error reading voice analytics file:", err);
+    return { calls: {} };
+  }
+}
+
+function saveVoiceAnalytics(analytics) {
+  try {
+    fs.writeFileSync(ANALYTICS_FILE, JSON.stringify(analytics, null, 2), "utf8");
+  } catch (err) {
+    console.error("Error writing voice analytics file:", err);
+  }
+}
+
 // ─── RETELL AI FRONTEND ─────────────────────────────
 
 
@@ -1185,6 +1382,21 @@ app.post("/api/retell-webhook", async (req, res) => {
     const callId = call.call_id;
     console.log(`📞 Incoming Call ID: ${callId}. Current processed list:`, Array.from(processedCalls));
 
+    // Record voice call analytics
+    const durationMs = call.duration_ms || (call.end_timestamp && call.start_timestamp ? (call.end_timestamp - call.start_timestamp) : 0);
+    if (callId && durationMs > 0) {
+      console.log(`[Analytics] Recording voice call ${callId} with duration ${durationMs}ms`);
+      const analytics = getVoiceAnalytics();
+      if (!analytics.calls[callId] || analytics.calls[callId].durationMs < durationMs) {
+        analytics.calls[callId] = {
+          durationMs: durationMs,
+          timestamp: call.end_timestamp || Date.now()
+        };
+        saveVoiceAnalytics(analytics);
+        console.log(`[Analytics] Successfully saved voice call ${callId} to analytics.`);
+      }
+    }
+
     // avoid duplicate emails
     if (processedCalls.has(callId)) {
       console.log(`⚠️ Call ID ${callId} has already been processed! Preventing duplicate email and exit.`);
@@ -1250,46 +1462,11 @@ app.post("/api/retell-webhook", async (req, res) => {
       console.log(`✨ Voice booking confirmed! Adding Call ID ${callId} to processed set.`);
       processedCalls.add(callId);
 
-      let formattedDate = "";
-      let formattedTime = "";
-
       console.log(`📅 Commencing date parsing for raw string: "${dateTime}"...`);
-      try {
-        if (dateTime.includes("-") && dateTime.includes(":")) {
-          const parsedDate = new Date(dateTime);
-          if (!isNaN(parsedDate.getTime())) {
-            formattedDate = parsedDate.toISOString().split("T")[0];
-            formattedTime = parsedDate.toLocaleTimeString("en-US", {
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true
-            });
-            console.log("➔ Parsed Format 1 (YYYY-MM-DD HH:MM) successfully");
-          }
-        } else if (dateTime.includes(" at ")) {
-          const [rawDate, rawTime] = dateTime.split(" at ");
-          // strip ordinal suffixes like 29th -> 29 to make Date parsing bulletproof
-          const cleanDate = rawDate.replace(/(st|nd|rd|th)/g, "");
-          const currentYear = new Date().getFullYear();
-          const parsedDate = new Date(`${cleanDate} ${currentYear}`);
-
-          if (!isNaN(parsedDate.getTime())) {
-            formattedDate = parsedDate.toISOString().split("T")[0];
-          } else {
-            formattedDate = cleanDate;
-          }
-          formattedTime = rawTime;
-          console.log(`➔ Parsed Format 2 (Date at Time). Suffix stripped: "${cleanDate}" successfully`);
-        } else {
-          formattedDate = dateTime;
-          formattedTime = "Scheduled";
-          console.log("➔ Parsed Format 3 (Generic string fallback)");
-        }
-      } catch (dateErr) {
-        console.warn("⚠️ Date formatting threw an error. Falling back gracefully to raw values:", dateErr.message);
-        formattedDate = dateTime;
-        formattedTime = "Scheduled";
-      }
+      const parsed = parseVoiceDateTime(dateTime);
+      const formattedDate = parsed.date;
+      const formattedTime = parsed.time;
+      console.log(`➔ Parsed Date/Time output: date="${formattedDate}", time="${formattedTime}"`);
 
       console.log(`💾 Saving appointment details to MongoDB...`);
       console.log({

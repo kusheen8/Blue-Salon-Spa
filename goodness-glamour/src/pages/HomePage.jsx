@@ -1049,7 +1049,7 @@ export default function HomePage({ navigate }) {
       </div>
 
       <GeminiChatSidebar navigate={navigate} />
-      <VirtualAssistantCard popupOnly={true} />
+      <VirtualAssistantCard popupOnly={true} navigate={navigate} />
     </div>
   );
 }

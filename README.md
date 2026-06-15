@@ -13,7 +13,7 @@ An enterprise-ready, AI-driven booking, beauty consultation, and customer notifi
 - **JWT Session Persistence**: Signs a secure 24-hour JSON Web Token (JWT) on login, persisting users through page refreshes.
 - **Protected Routes**: Restricts booking portals, profiles, and admin tools. Redirects guests automatically.
 - **Simulated Google Authentication**: Includes a custom Google Account chooser dialog (supporting quick-test presets for Priya/Rahul and custom email inputs) linked to a dedicated `/api/users/google-login` backend route. Registers new accounts automatically on first login.
-- **Seeded Administration**: Automatically seeds the system owner (`kusheendhar@gmail.com` / `Admin@123blue`) on startup, routing them to the interactive controls of the Salon Dashboard.
+- **Seeded Administration**: Automatically seeds the system owner (`bluespasaloon@gmail.com` / `Admin123@blue`) on startup, routing them to the interactive controls of the Salon Dashboard.
 
 ### 💇 2. Multi-Channel AI Concierge (Aria)
 - **AI Chatbot**: A friendly and elegant salon assistant widget powered by Groq/Gemini/HuggingFace that guides clients through hairstyle consultations, service pricing, and booking.
